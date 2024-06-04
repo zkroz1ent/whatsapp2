@@ -1,0 +1,5 @@
+# Ignore the var directory
+/var/
+
+# Ignore the vendor directory
+/vendor/
