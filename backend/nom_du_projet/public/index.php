@@ -1,9 +1,8 @@
 <?php
-
-use App\Kernel;
-
-require_once dirname(__DIR__).'/vendor/autoload_runtime.php';
-
-return function (array $context) {
-    return new Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG']);
-};
+try {
+    $dbh = new PDO('mysql:host=127.0.0.1;dbname=testdb', 'root');
+    echo 'Connection réussie à MySQL via PDO.';
+} catch (PDOException $e) {
+    echo 'Échec de la connexion : ' . $e->getMessage();
+}
+?>
