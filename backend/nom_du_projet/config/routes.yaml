@@ -1,3 +1,11 @@
-controllers:
-    resource: ../src/Controller/
-    type: attribute
+registration:
+    path: /api/register
+    controller: App\Controller\RegistrationController::register
+
+login:
+    path: /api/login
+    controller: App\Controller\SecurityController::login
+
+profile:
+    path: /api/profile
+    controller: App\Controller\UserController::profile

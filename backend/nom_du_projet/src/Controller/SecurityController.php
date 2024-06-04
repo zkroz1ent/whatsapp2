@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Test1;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,7 +27,7 @@ class SecurityController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
-        $user = $entityManager->getRepository(User::class)->findOneBy(['username' => $data['username']]);
+        $user = $entityManager->getRepository(Test1::class)->findOneBy(['username' => $data['username']]);
 
         if (!$user || !$passwordHasher->isPasswordValid($user, $data['password'])) {
             throw new HttpException(Response::HTTP_UNAUTHORIZED, 'Invalid credentials.');
