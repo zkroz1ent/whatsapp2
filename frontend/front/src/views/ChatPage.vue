@@ -1,21 +1,37 @@
 <template>
     <div class="flex h-screen">
       <!-- Liste des conversations -->
-      <div class="w-1/4 bg-gray-100 border-r border-gray-300">
-        <div class="p-4 border-b border-gray-300">
-          <input type="text" placeholder="Rechercher..." class="w-full p-2 border rounded" />
+      <div :class="['w-1/4 bg-gray-100 border-r border-gray-300 transition-transform transform', { '-translate-x-full': !isSidebarOpen }]">
+        <div class="p-4 border-b border-gray-300 flex justify-between items-center">
+          <input v-model="searchQuery" type="text" placeholder="Rechercher..." class="w-full p-2 border rounded" />
+          <button @click="toggleSidebar" class="ml-2 bg-green-500 text-white p-2 rounded">⇦</button>
         </div>
-        <ul class="overflow-y-auto h-full">
-          <li v-for="(conversation, index) in conversations" :key="index" @click="selectConversation(index)" class="cursor-pointer p-4 border-b border-gray-300 hover:bg-gray-200">
-            <div class="font-bold">{{ conversation.name }}</div>
-            <div class="text-sm text-gray-600">{{ conversation.lastMessage }}</div>
-          </li>
-        </ul>
+        <div class="overflow-y-auto h-full">
+          <div class="p-4">
+            <h2 class="text-xl font-bold mb-2">Personnelles</h2>
+            <ul>
+              <li v-for="(conversation, index) in filteredPersonalConversations" :key="index" @click="selectConversation(index, 'personal')" class="cursor-pointer p-4 border-b border-gray-300 hover:bg-gray-200">
+                <div class="font-bold">{{ conversation.name }}</div>
+                <div class="text-sm text-gray-600">{{ conversation.lastMessage }}</div>
+              </li>
+            </ul>
+          </div>
+          <div class="p-4">
+            <h2 class="text-xl font-bold mb-2">Groupes</h2>
+            <ul>
+              <li v-for="(conversation, index) in filteredGroupConversations" :key="index" @click="selectConversation(index, 'group')" class="cursor-pointer p-4 border-b border-gray-300 hover:bg-gray-200">
+                <div class="font-bold">{{ conversation.name }}</div>
+                <div class="text-sm text-gray-600">{{ conversation.lastMessage }}</div>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
   
       <!-- Fenêtre de chat -->
       <div class="flex-1 flex flex-col">
         <div class="p-4 border-b border-gray-300 flex items-center">
+          <button @click="toggleSidebar" class="mr-2 bg-green-500 text-white p-2 rounded">⇨</button>
           <div class="font-bold">{{ selectedConversation.name }}</div>
         </div>
         <div class="flex-1 overflow-y-auto p-4">
@@ -38,44 +54,86 @@
     name: 'ChatPage',
     data() {
       return {
-        conversations: [
+        searchQuery: '',
+        isSidebarOpen: true,
+        personalConversations: [
           {
-            name: 'User1',
-            lastMessage: 'aaaaaa',
+            name: 'Alice',
+            lastMessage: 'Salut, comment ça va ?',
             messages: [
-              { text: 'bbbbbb', isMine: false },
-              { text: 'cccc', isMine: true }
+              { text: 'Salut, comment ça va ?', isMine: false },
+              { text: 'Ça va bien, merci !', isMine: true }
             ]
           },
           {
-            name: 'lodibidon',
-            lastMessage: 'grrr',
+            name: 'damien',
+            lastMessage: 'On se voit ce soir ?',
             messages: [
-              { text: 'non', isMine: false },
-              { text: 'Oui', isMine: true }
+              { text: 'On se voit ce soir ?', isMine: false },
+              { text: 'Oui, à 20h.', isMine: true }
+            ]
+          }
+        ],
+        groupConversations: [
+          {
+            name: 'groupe 1',
+            lastMessage: 'didididi',
+            messages: [
+              { text: 'loooo', isMine: false },
+              { text: 'hmh', isMine: true }
+            ]
+          },
+          {
+            name: 'grp2',
+            lastMessage: 'La réunion est reportée à demain.',
+            messages: [
+              { text: 'La réunion', isMine: false },
+              { text: 'D’accord', isMine: true }
             ]
           }
         ],
         selectedConversationIndex: 0,
+        selectedConversationType: 'personal',
         newMessage: ''
       };
     },
     computed: {
+      filteredPersonalConversations() {
+        return this.personalConversations.filter(conversation =>
+          conversation.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+          conversation.lastMessage.toLowerCase().includes(this.searchQuery.toLowerCase())
+        );
+      },
+      filteredGroupConversations() {
+        return this.groupConversations.filter(conversation =>
+          conversation.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+          conversation.lastMessage.toLowerCase().includes(this.searchQuery.toLowerCase())
+        );
+      },
       selectedConversation() {
-        return this.conversations[this.selectedConversationIndex];
+        return this.selectedConversationType === 'personal'
+          ? this.personalConversations[this.selectedConversationIndex]
+          : this.groupConversations[this.selectedConversationIndex];
       }
     },
     methods: {
-      selectConversation(index) {
+      selectConversation(index, type) {
         this.selectedConversationIndex = index;
+        this.selectedConversationType = type;
       },
       sendMessage() {
         if (this.newMessage.trim() !== '') {
           this.selectedConversation.messages.push({ text: this.newMessage, isMine: true });
           this.newMessage = '';
         }
+      },
+      toggleSidebar() {
+        this.isSidebarOpen = !this.isSidebarOpen;
       }
     }
   };
   </script>
   
+  <style scoped>
+  /* Ajoutez ici des styles spécifiques à ce composant si nécessaire */
+  </style>
