@@ -11,3 +11,6 @@ login:
 profile:
     path: /api/profile
     controller: App\Controller\UserController::profile
+Message:
+    path: /api/Message
+    controller: App\Controller\MessageController::Message
