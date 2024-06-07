@@ -2,65 +2,30 @@
 
 namespace App\Repository;
 
-use App\Entity\Test1;
+use App\Entity\Commission;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 
 /**
- * @extends ServiceEntityRepository<Test1>
-* @implements PasswordUpgraderInterface<Test1>
- *
- * @method Test1|null find($id, $lockMode = null, $lockVersion = null)
- * @method Test1|null findOneBy(array $criteria, array $orderBy = null)
- * @method Test1[]    findAll()
- * @method Test1[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Commission|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Commission|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Commission[]    findAll()
+ * @method Commission[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class Test1Repository extends ServiceEntityRepository implements PasswordUpgraderInterface
+class CommissionRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Test1::class);
+        parent::__construct($registry, Commission::class);
     }
 
-    /**
-     * Used to upgrade (rehash) the user's password automatically over time.
-     */
-    public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
+    // Exemple de méthode personnalisée
+    public function findByName(string $name): array
     {
-        if (!$user instanceof Test1) {
-            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
-        }
-
-        $user->setPassword($newHashedPassword);
-        $this->getEntityManager()->persist($user);
-        $this->getEntityManager()->flush();
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.name = :name')
+            ->setParameter('name', $name)
+            ->getQuery()
+            ->getResult();
     }
-
-//    /**
-//     * @return Test1[] Returns an array of Test1 objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('t')
-//            ->andWhere('t.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('t.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?Test1
-//    {
-//        return $this->createQueryBuilder('t')
-//            ->andWhere('t.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
 }

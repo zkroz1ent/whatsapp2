@@ -1,5 +1,3 @@
-# config/routes.yaml
-
 registration:
     path: /api/register
     controller: App\Controller\RegistrationController::register
@@ -11,6 +9,14 @@ login:
 profile:
     path: /api/profile
     controller: App\Controller\UserController::profile
-Message:
-    path: /api/Message
-    controller: App\Controller\MessageController::Message
+
+# Routes pour la gestion des messages
+api_message_new:
+    path: /api/message
+    controller: App\Controller\MessageController::new
+    methods: [POST]
+
+api_message_list:
+    path: /api/messages
+    controller: App\Controller\MessageController::list
+    methods: [GET]
