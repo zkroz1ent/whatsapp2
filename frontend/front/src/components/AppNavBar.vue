@@ -1,7 +1,7 @@
 <template>
   <nav class="bg-green-600 p-4">
     <div class="container mx-auto flex justify-between items-center">
-      <div class="text-white text-xl font-bold">WhatsApp</div>
+      <div class="text-white text-xl font-bold">WhatsApp2.0</div>
       <div class="flex space-x-4">
         <router-link to="/login" class="text-white hover:text-gray-300">Login</router-link>
         <router-link to="/register" class="text-white hover:text-gray-300">Register</router-link>
