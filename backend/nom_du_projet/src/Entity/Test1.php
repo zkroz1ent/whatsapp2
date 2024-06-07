@@ -24,7 +24,21 @@ class Test1 implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string')]
     private ?string $password = null;
 
-    // Getters and setters...
+    /**
+     * @ORM\Column(type="string", length=180, unique=true)
+     */
+    private $email;
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): self
+    {
+        $this->email = $email;
+        return $this;
+    }
 
     public function getId(): ?int
     {
@@ -42,6 +56,8 @@ class Test1 implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+
+
     public function getPassword(): ?string
     {
         return $this->password;
@@ -52,6 +68,7 @@ class Test1 implements UserInterface, PasswordAuthenticatedUserInterface
         $this->password = $password;
         return $this;
     }
+
 
     public function getRoles(): array
     {
