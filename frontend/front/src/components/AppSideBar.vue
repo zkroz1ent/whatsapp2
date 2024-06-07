@@ -1,19 +1,19 @@
 <template>
-    <div class="sidebar bg-gray-800 text-white w-64 h-full fixed">
+    <div class="sidebar bg-white text-gray-800 w-64 h-full fixed shadow-lg">
       <div class="p-4">
         <h2 class="text-2xl font-bold mb-4">Menu</h2>
         <ul>
           <li class="mb-2">
-            <router-link to="/groupe A" class="block py-2 px-4 hover:bg-gray-700 rounded">groupe A</router-link>
+            <router-link to="/Groupe1" class="block py-2 px-4 hover:bg-gray-200 rounded">Groupe1</router-link>
           </li>
           <li class="mb-2">
-            <router-link to="/groupe B" class="block py-2 px-4 hover:bg-gray-700 rounded">groupe B</router-link>
+            <router-link to="/Groupe1" class="block py-2 px-4 hover:bg-gray-200 rounded">Groupe1</router-link>
           </li>
           <li class="mb-2">
-            <router-link to="/groupe C" class="block py-2 px-4 hover:bg-gray-700 rounded">groupe C</router-link>
+            <router-link to="/Groupe1" class="block py-2 px-4 hover:bg-gray-200 rounded">Groupe1</router-link>
           </li>
           <li class="mb-2">
-            <router-link to="/logout" class="block py-2 px-4 hover:bg-gray-700 rounded">Logout</router-link>
+            <router-link to="/Groupe1" class="block py-2 px-4 hover:bg-gray-200 rounded">Groupe1</router-link>
           </li>
         </ul>
       </div>
