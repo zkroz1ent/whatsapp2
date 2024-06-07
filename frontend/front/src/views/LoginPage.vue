@@ -53,7 +53,6 @@
     },
     methods: {
       handleLogin() {
-        // Logique de connexion ici
         console.log('Nom d\'utilisateur:', this.username);
         console.log('Mot de passe:', this.password);
       }
@@ -61,6 +60,3 @@
   };
   </script>
   
-  <style scoped>
-  /* Ajoutez ici des styles spécifiques à ce composant si nécessaire */
-  </style>
