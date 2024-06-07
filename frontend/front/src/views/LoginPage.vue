@@ -1,14 +1,14 @@
 <template>
     <div class="flex items-center justify-center min-h-screen bg-gray-100">
       <div class="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
-        <h2 class="text-2xl font-bold text-center text-gray-900">Connexion</h2>
+        <h2 class="text-3xl font-bold text-center text-gray-900">Connexion</h2>
         <form @submit.prevent="handleLogin" class="space-y-6">
           <div class="relative">
             <input
               type="text"
               v-model="username"
               required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+              class="w-full px-3 py-4 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
             />
             <label class="absolute top-0 left-0 px-3 py-2 text-gray-500 transform -translate-y-1/2 pointer-events-none">
               Nom d'utilisateur
@@ -19,11 +19,14 @@
               type="password"
               v-model="password"
               required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+              class="w-full px-3 py-4 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
             />
             <label class="absolute top-0 left-0 px-3 py-2 text-gray-500 transform -translate-y-1/2 pointer-events-none">
               Mot de passe
             </label>
+          </div>
+          <div class="flex items-center justify-between">
+            <a href="#" class="text-sm text-indigo-600 hover:underline">Mot de passe oublié ?</a>
           </div>
           <button
             type="submit"
@@ -32,6 +35,9 @@
             Se connecter
           </button>
         </form>
+        <div class="text-center">
+          <p class="text-sm text-gray-600">Pas encore de compte ? <a href="#" class="text-indigo-600 hover:underline">Inscription</a></p>
+        </div>
       </div>
     </div>
   </template>
