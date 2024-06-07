@@ -1,33 +1,28 @@
 security:
+    enable_authenticator_manager: true
+
+    # Configuration des règles de hachage de mot de passe pour Test1
     password_hashers:
         App\Entity\Test1:
             algorithm: auto
 
-
+    # Fournisseurs utilisateurs
     providers:
         app_user_provider:
             entity:
                 class: App\Entity\Test1
                 property: test
-        # used to reload user from session & other features (e.g. switch_user)
 
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
-        login:
-            pattern: ^/api/login
-            stateless: true
-            json_login:
-                check_path: /api/login
-
+        # Firewall API ouvert sans sécurité
         api:
             pattern: ^/api
             stateless: true
-            provider: app_user_provider
+            security: false # Option pour désactiver la sécurité
 
     access_control:
-        - { path: ^/api/register, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api, roles: IS_AUTHENTICATED_ANONYMOUSLY }

@@ -24,6 +24,8 @@ class Test1 implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string')]
     private ?string $password = null;
 
+    // Getters and setters...
+
     public function getId(): ?int
     {
         return $this->id;
@@ -69,6 +71,6 @@ class Test1 implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials()
     {
-        // Clear sensitive data here, if ever needed
+        // Implement if needed
     }
 }
