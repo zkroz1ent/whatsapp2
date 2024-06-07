@@ -1,22 +1,18 @@
 <template>
-  <div class="app-container flex">
-    <AppSidebar />
-    <div class="main-content flex-1">
       <AppNavbar />
       <router-view />
-    </div>
-  </div>
 </template>
 
 <script>
 import AppNavbar from './components/AppNavBar.vue';
-import AppSidebar from './components/AppSideBar.vue';
-
+//import AppSidebar from './components/AppSideBar.vue';
+//<div class="app-container flex">
+//    <AppSidebar />
 export default {
   name: 'App',
   components: {
     AppNavbar,
-    AppSidebar
+   // AppSidebar
   }
 };
 </script>
