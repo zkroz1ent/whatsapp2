@@ -6,6 +6,7 @@
         <router-link to="/login" class="text-white hover:text-gray-300">Login</router-link>
         <router-link to="/register" class="text-white hover:text-gray-300">Register</router-link>
         <router-link to="/chat" class="text-white hover:text-gray-300">Chat</router-link>
+        <router-link to="/group" class="text-white hover:text-gray-300">Group</router-link>
         <div class="relative">
           <button @click="toggleDropdown" class="flex items-center text-white hover:text-gray-300 focus:outline-none">
             <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
