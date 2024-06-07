@@ -5,33 +5,38 @@ namespace App\Controller;
 use App\Entity\Test1;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 class RegistrationController extends AbstractController
 {
-
-
-    
     #[Route('/api/register', name: 'api_register', methods: ['POST'])]
-    public function register(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
+    public function register(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
+        try {
+            $data = json_decode($request->getContent(), true);
 
-        $user = new Test1();
-        $user->setUsername($data['username']);
-        $user->setPassword(
-            $passwordHasher->hashPassword(
-                $user,
-                $data['password']
-            )
-        );
+            if (!isset($data['username']) || !isset($data['password'])) {
+                return new JsonResponse(['message' => 'Invalid input'], JsonResponse::HTTP_BAD_REQUEST);
+            }
 
-        $entityManager->persist($user);
-        $entityManager->flush();
+            $user = new Test1();
+            $user->setUsername($data['username']);
+            $user->setPassword(
+                $passwordHasher->hashPassword(
+                    $user,
+                    $data['password']
+                )
+            );
 
-        return new Response('User successfully registered', Response::HTTP_CREATED);
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            return new JsonResponse(['message' => 'User successfully registered'], JsonResponse::HTTP_CREATED);
+        } catch (\Exception $e) {
+            return new JsonResponse(['message' => 'Internal server error'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

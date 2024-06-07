@@ -1405,6 +1405,7 @@ class ComposerStaticInit61d302dd823d566cf38ec81d8aac085b
         'App\\Controller\\RegistrationController' => __DIR__ . '/../..' . '/src/Controller/RegistrationController.php',
         'App\\Controller\\SecurityController' => __DIR__ . '/../..' . '/src/Controller/SecurityController.php',
         'App\\Entity\\Test1' => __DIR__ . '/../..' . '/src/Entity/Test1.php',
+        'App\\EventSubscriber\\ExceptionSubscriber' => __DIR__ . '/../..' . '/src/EventSubscriber/ExceptionSubscriber.php',
         'App\\Form\\RegistrationFormType' => __DIR__ . '/../..' . '/src/Form/RegistrationFormType.php',
         'App\\Kernel' => __DIR__ . '/../..' . '/src/Kernel.php',
         'App\\Repository\\AdminRepository' => __DIR__ . '/../..' . '/src/Repository/AdminRepository.php',

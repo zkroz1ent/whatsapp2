@@ -829,6 +829,7 @@ return array(
     'App\\Controller\\RegistrationController' => $baseDir . '/src/Controller/RegistrationController.php',
     'App\\Controller\\SecurityController' => $baseDir . '/src/Controller/SecurityController.php',
     'App\\Entity\\Test1' => $baseDir . '/src/Entity/Test1.php',
+    'App\\EventSubscriber\\ExceptionSubscriber' => $baseDir . '/src/EventSubscriber/ExceptionSubscriber.php',
     'App\\Form\\RegistrationFormType' => $baseDir . '/src/Form/RegistrationFormType.php',
     'App\\Kernel' => $baseDir . '/src/Kernel.php',
     'App\\Repository\\AdminRepository' => $baseDir . '/src/Repository/AdminRepository.php',
