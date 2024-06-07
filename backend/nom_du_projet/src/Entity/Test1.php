@@ -12,19 +12,16 @@ class Test1 implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180, unique: true)]
-    private ?string $test = null;
+    #[ORM\Column(type: 'string', length: 180, unique: true)]
+    private ?string $username = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'json')]
     private array $roles = [];
 
-    /**
-     * @var string The hashed password
-     */
-    #[ORM\Column]
+    #[ORM\Column(type: 'string')]
     private ?string $password = null;
 
     public function getId(): ?int
@@ -32,66 +29,7 @@ class Test1 implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->id;
     }
 
-    public function getTest(): ?string
-    {
-        return $this->test;
-    }
-
-    public function setTest(string $test): static
-    {
-        $this->test = $test;
-
-        return $this;
-    }
-
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
-    public function getUserIdentifier(): string
-    {
-        return (string) $this->test;
-    }
-
-    /**
-     * @see UserInterface
-     */
-
-
-    public function setRoles(array $roles): static
-    {
-        $this->roles = $roles;
-
-        return $this;
-    }
-
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
- 
-
-
-
-    /**
-     * @see UserInterface
-     */
-  
-  
-
-
-    /**
-     * @ORM\Column(type="string", unique=true)
-     */
-    private $username;
-
-    /**
-     * @ORM\Column(type="string")
-     */
-
-   
-
-    public function getUsername(): string
+    public function getUsername(): ?string
     {
         return $this->username;
     }
@@ -102,7 +40,7 @@ class Test1 implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getPassword(): string
+    public function getPassword(): ?string
     {
         return $this->password;
     }
@@ -115,17 +53,22 @@ class Test1 implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getRoles(): array
     {
-        return ['ROLE_USER'];
+        return $this->roles;
     }
 
-    public function getSalt(): ?string
+    public function setRoles(array $roles): self
     {
-        return null;
+        $this->roles = $roles;
+        return $this;
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return $this->username;
     }
 
     public function eraseCredentials()
     {
+        // Clear sensitive data here, if ever needed
     }
-
-
 }
