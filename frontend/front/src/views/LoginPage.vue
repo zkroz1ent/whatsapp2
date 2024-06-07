@@ -60,7 +60,11 @@ export default {
           username: this.username,
           password: this.password
         });
-        console.log('Réponse de l\'API:', response.data);
+        const { token } = response.data;
+        localStorage.setItem('username', this.username);
+        localStorage.setItem('token', token);
+
+        console.log('Connexion réussie:', response.data);
       } catch (error) {
         console.error('Erreur lors de la connexion:', error);
       }
