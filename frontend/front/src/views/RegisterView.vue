@@ -109,7 +109,10 @@ export default {
 
         console.log('Inscription réussie:', response.data);
 
+        console.table(userData);
+
         this.$router.push('/login');
+
 
       } catch (error) {
         Swal.fire({
