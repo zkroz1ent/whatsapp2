@@ -106,9 +106,6 @@ export default {
         const response = await axios.post('http://127.0.0.1:8000/api/register', userData);
 
         console.log('Réponse de l\'API:', response.data);
-        const { token } = response.data;
-        localStorage.setItem('username', this.username);
-        localStorage.setItem('token', token);
 
         console.log('Inscription réussie:', response.data);
 
