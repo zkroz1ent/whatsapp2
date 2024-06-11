@@ -19,14 +19,5 @@ class MessageRepository extends ServiceEntityRepository
         parent::__construct($registry, Message::class);
     }
 
-    // Exemple de méthode personnalisée
-    public function findByAuthor(int $authorId): array
-    {
-        return $this->createQueryBuilder('m')
-            ->andWhere('m.author = :authorId')
-            ->setParameter('authorId', $authorId)
-            ->orderBy('m.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
-    }
+    // Ajoutez vos méthodes personnalisées ici.
 }

@@ -2,22 +2,32 @@
 
 namespace App\Message;
 
+
 final class SendReceiveMessage
 {
-    /*
-     * Add whatever properties and methods you need
-     * to hold the data for this message class.
-     */
+    private $content;
+    private $senderId;
+    private $receiverId;
 
-//     private $name;
+    public function __construct(string $content, int $senderId, int $receiverId)
+    {
+        $this->content = $content;
+        $this->senderId = $senderId;
+        $this->receiverId = $receiverId;
+    }
 
-//     public function __construct(string $name)
-//     {
-//         $this->name = $name;
-//     }
+    public function getContent(): string
+    {
+        return $this->content;
+    }
 
-//    public function getName(): string
-//    {
-//        return $this->name;
-//    }
+    public function getSenderId(): int
+    {
+        return $this->senderId;
+    }
+
+    public function getReceiverId(): int
+    {
+        return $this->receiverId;
+    }
 }

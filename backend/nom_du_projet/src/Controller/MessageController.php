@@ -1,59 +1,81 @@
 <?php
+// src/Controller/MessageController.php
 
 namespace App\Controller;
 
 use App\Entity\Message;
-use App\Repository\UserRepository;
-use App\Repository\CommissionRepository;
-use App\Repository\Test1Repository;
+use App\Entity\Test1;
+use App\Entity\User;
+use App\Repository\MessageRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Security\Core\Security;
 
 class MessageController extends AbstractController
 {
-    #[Route('/api/message', name: 'api_message_new', methods: ['POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, Test1Repository $userRepository, CommissionRepository $commissionRepository, SerializerInterface $serializer): Response
+    private $entityManager;
+    private $security;
+
+    public function __construct(EntityManagerInterface $entityManager, Security $security)
+    {
+        $this->entityManager = $entityManager;
+        $this->security = $security;
+    }
+    
+    // Nouvelle Méthode pour obtenir un utilisateur simulé
+    private function getFakeUser(): Test1
+    {
+        // Vous pouvez ici récupérer un utilisateur existant dans la base de données
+        // pour simplifier, imaginez que l'ID de l'utilisateur est 1
+        return $this->entityManager->getRepository(Test1::class)->find(1);
+    }
+
+    /**
+     * @Route("/api/messages", name="send_message", methods={"POST"})
+     */
+    public function sendMessage(Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['content']) || !isset($data['commission_id'])) {
-            return new Response('Invalid data', Response::HTTP_BAD_REQUEST);
+        $content = $data['content'] ?? null;
+        $receiverId = $data['receiverId'] ?? null;
+
+        if (!$content || !$receiverId) {
+            return $this->json(['error' => 'Invalid data'], Response::HTTP_BAD_REQUEST);
         }
 
         $message = new Message();
-        $message->setContent($data['content']);
-        $message->setCreatedAt(new \DateTime());
-
-        $author = $this->getUser();
-        $commission = $commissionRepository->find($data['commission_id']);
-
-        if (!$author) {
-            return new Response('Author not found', Response::HTTP_BAD_REQUEST);
+        $message->setContent($content);
+        
+        // Utilisation de l'user simulé
+        $sender = $this->getFakeUser();
+        
+        // Assurez-vous que getUser() retourne un utilisateur simulé ou authentifié
+        // $sender = $this->getUser() ?? $sender;
+        
+        if(!$sender) {
+            return $this->json(['error' => 'User not authenticated'], Response::HTTP_UNAUTHORIZED);
         }
-        if (!$commission) {
-            return new Response('Commission not found', Response::HTTP_BAD_REQUEST);
-        }
+        
+        $message->setSender($sender);
+        $message->setReceiverId($receiverId);
+        $message->setSentAt(new \DateTime());
 
-        $message->setAuthor($author);
-        $message->setCommission($commission);
+        $this->entityManager->persist($message);
+        $this->entityManager->flush();
 
-        $entityManager->persist($message);
-        $entityManager->flush();
-
-        $response_data = $serializer->serialize($message, 'json');
-        return new Response($response_data, Response::HTTP_CREATED, ['Content-Type' => 'application/json']);
+        return $this->json(['status' => 'Message sent!'], Response::HTTP_CREATED);
     }
 
-    #[Route('/api/messages', name: 'api_message_list', methods: ['GET'])]
-    public function list(EntityManagerInterface $entityManager, SerializerInterface $serializer): Response
+    /**
+     * @Route("/api/messages", name="get_messages", methods={"GET"})
+     */
+    public function getMessages(MessageRepository $messageRepository): Response
     {
-        $messages = $entityManager->getRepository(Message::class)->findAll();
-        $response_data = $serializer->serialize($messages, 'json');
-
-        return new Response($response_data, Response::HTTP_OK, ['Content-Type' => 'application/json']);
+        $messages = $messageRepository->findAll();
+        return $this->json($messages);
     }
 }
