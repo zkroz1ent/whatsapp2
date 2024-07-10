@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\Test1;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,7 +25,7 @@ class RegistrationController extends AbstractController
             }
 
             // Création de l'utilisateur
-            $user = new Test1();
+            $user = new User();
             $user->setUsername($data['username']);
             $user->setPassword(
                 $passwordHasher->hashPassword(

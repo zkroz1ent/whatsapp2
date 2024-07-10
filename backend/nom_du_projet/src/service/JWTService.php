@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use App\Entity\Test1;
+use App\Entity\User;
 use Firebase\JWT\JWT;
 use Psr\Log\LoggerInterface;
 
@@ -17,7 +17,7 @@ class JWTService
         $this->logger = $logger;
     }
 
-    public function createToken(Test1 $user): string
+    public function createToken(User $user): string
     {
         $payload = [
             'user' => $user->getUsername(),

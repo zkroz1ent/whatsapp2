@@ -1,14 +1,13 @@
 <?php
-
+// src/Entity/Message.php
 
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Repository\MessageRepository;
-use DateTime;
 
 /**
- * @ORM\Entity(repositoryClass=MessageRepository::class)
+ * @ORM\Entity
+ * @ORM\Table(name="messages")
  */
 class Message
 {
@@ -24,10 +23,15 @@ class Message
      */
     private $content;
 
-    public function setContent(string $content): self
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\User")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $sender;
+
+    public function getId(): ?int
     {
-        $this->content = $content;
-        return $this;
+        return $this->id;
     }
 
     public function getContent(): ?string
@@ -35,87 +39,22 @@ class Message
         return $this->content;
     }
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\User")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $sender;
-
-    public function setSender(Test1 $sender): self
+    public function setContent(string $content): self
     {
-        $this->sender = $sender;
+        $this->content = $content;
+
         return $this;
     }
 
-    public function getSender(): ?Test1
+    public function getSender(): ?User
     {
         return $this->sender;
     }
 
-    /**
-     * @ORM\Column(type="integer")
-     */
-    private $receiverId;
-
-    public function setReceiverId(int $receiverId): self
+    public function setSender(?User $sender): self
     {
-        $this->receiverId = $receiverId;
+        $this->sender = $sender;
+
         return $this;
     }
-
-    public function getReceiverId(): ?int
-    {
-        return $this->receiverId;
-    }
-
-    /**
-     * @ORM\Column(type="datetime")
-     */
-    private $sentAt;
-
-    public function setSentAt(DateTime $sentAt): self
-    {
-        $this->sentAt = $sentAt;
-        return $this;
-    }
-
-    public function getSentAt(): ?DateTime
-    {
-        return $this->sentAt;
-    }
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Commission")
-     * @ORM\JoinColumn(nullable=true)
-     */
-    private $commission; // Null si le message est global
-
-    public function setCommission(?Commission $commission): self
-    {
-        $this->commission = $commission;
-        return $this;
-    }
-
-    public function getCommission(): ?Commission
-    {
-        return $this->commission;
-    }
-
-    /**
-     * @ORM\Column(type="boolean")
-     */
-    private $isGlobal; // True si le message est global
-
-    public function setIsGlobal(bool $isGlobal): self
-    {
-        $this->isGlobal = $isGlobal;
-        return $this;
-    }
-
-    public function getIsGlobal(): ?bool
-    {
-        return $this->isGlobal;
-    }
-
-    // Add other necessary getters and setters if needed
 }

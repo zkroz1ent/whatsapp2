@@ -1,7 +1,7 @@
 <?php
 namespace App\Controller;
 
-use App\Entity\Test1;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -33,7 +33,7 @@ class SecurityController extends AbstractController
 
         // $this->logger->info('Received username: ' . $data['username']);
 
-        $user = $entityManager->getRepository(Test1::class)->findOneBy(['username' => $data['username']]);
+        $user = $entityManager->getRepository(User::class)->findOneBy(['username' => $data['username']]);
         if (!$user) {
             // $this->logger->error('User not found: ' . $data['username']);
             return new JsonResponse(['message' => 'Invalid credentials'], JsonResponse::HTTP_UNAUTHORIZED);
