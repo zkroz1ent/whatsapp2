@@ -2,31 +2,31 @@
   <div class="flex h-screen">
     <!-- Liste des conversations -->
     <div
-      :class="['w-1/4 bg-gray-100 border-r border-gray-300 transition-transform transform', { '-translate-x-full': !isSidebarOpen }]">
+      :class="['w-1/4 bg-gray-100 dark:bg-slate-900 border-r border-gray-300 transition-transform transform', { '-translate-x-full': !isSidebarOpen }]">
       <div class="p-4 border-b border-gray-300 flex justify-between items-center">
         <input v-model="searchQuery" type="text" placeholder="Rechercher..." class="w-full p-2 border rounded" />
         <button @click="toggleSidebar" class="ml-2 bg-green-500 text-white p-2 rounded">⇦</button>
       </div>
       <div class="overflow-y-auto h-full">
         <div class="p-4">
-          <h2 class="text-xl font-bold mb-2">Personnelles</h2>
+          <h2 class="text-xl dark:text-white font-bold mb-2">Personnelles</h2>
           <ul>
             <li v-for="(conversation, index) in filteredPersonalConversations" :key="index"
               @click="selectConversation(index, 'personal')"
-              class="cursor-pointer p-4 border-b border-gray-300 hover:bg-gray-200">
-              <div class="font-bold">{{ conversation.name }}</div>
-              <div class="text-sm text-gray-600">{{ conversation.lastMessage }}</div>
+              class="cursor-pointer p-4 border-b border-gray-300 hover:scale-110">
+              <div class="font-bold dark:text-white">{{ conversation.name }}</div>
+              <div class="text-sm dark:text-white text-gray-600">{{ conversation.lastMessage }}</div>
             </li>
           </ul>
         </div>
         <div class="p-4">
-          <h2 class="text-xl font-bold mb-2">Groupes</h2>
+          <h2 class="text-xl dark:text-white font-bold mb-2">Groupes</h2>
           <ul>
             <li v-for="(conversation, index) in filteredGroupConversations" :key="index"
               @click="selectConversation(index, 'group')"
-              class="cursor-pointer p-4 border-b border-gray-300 hover:bg-gray-200">
+              class="cursor-pointer dark:text-white p-4 border-b border-gray-300 hover:scale-110">
               <div class="font-bold">{{ conversation.name }}</div>
-              <div class="text-sm text-gray-600">{{ conversation.lastMessage }}</div>
+              <div class="text-sm dark:text-white text-gray-600">{{ conversation.lastMessage }}</div>
             </li>
           </ul>
         </div>
@@ -35,9 +35,9 @@
 
     <!-- Fenêtre de chat -->
     <div class="flex-1 flex flex-col">
-      <div class="p-4 border-b border-gray-300 flex items-center">
+      <div class="p-2 border-b border-gray-300 flex items-center">
         <button @click="toggleSidebar" class="mr-2 bg-green-500 text-white p-2 rounded">⇨</button>
-        <div class="font-bold">{{ selectedConversation.name }}</div>
+        <div class="font-bold dark:text-white">{{ selectedConversation.name }}</div>
       </div>
       <div class="flex-1 overflow-y-auto p-4">
         <div v-for="(message, index) in selectedConversation.messages" :key="index"

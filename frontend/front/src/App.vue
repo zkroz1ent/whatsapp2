@@ -1,6 +1,8 @@
 <template>
+  <div class="dark:bg-slate-900">
       <AppNavbar />
       <router-view />
+    </div>
 </template>
 
 <script>
