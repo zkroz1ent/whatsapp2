@@ -13,7 +13,7 @@
           <ul>
             <li v-for="(conversation, index) in filteredPersonalConversations" :key="index"
               @click="selectConversation(index, 'personal')"
-              class="cursor-pointer p-4 border-b border-gray-300 hover:bg-gray-200">
+              class="cursor-pointer p-4 border-b border-gray-300 hover:scale-110">
               <div class="font-bold dark:text-white">{{ conversation.name }}</div>
               <div class="text-sm dark:text-white text-gray-600">{{ conversation.lastMessage }}</div>
             </li>
@@ -24,7 +24,7 @@
           <ul>
             <li v-for="(conversation, index) in filteredGroupConversations" :key="index"
               @click="selectConversation(index, 'group')"
-              class="cursor-pointer dark:text-white p-4 border-b border-gray-300 hover:bg-gray-200">
+              class="cursor-pointer dark:text-white p-4 border-b border-gray-300 hover:scale-110">
               <div class="font-bold">{{ conversation.name }}</div>
               <div class="text-sm dark:text-white text-gray-600">{{ conversation.lastMessage }}</div>
             </li>
@@ -35,7 +35,7 @@
 
     <!-- Fenêtre de chat -->
     <div class="flex-1 flex flex-col">
-      <div class="p-4 border-b border-gray-300 flex items-center">
+      <div class="p-2 border-b border-gray-300 flex items-center">
         <button @click="toggleSidebar" class="mr-2 bg-green-500 text-white p-2 rounded">⇨</button>
         <div class="font-bold dark:text-white">{{ selectedConversation.name }}</div>
       </div>
