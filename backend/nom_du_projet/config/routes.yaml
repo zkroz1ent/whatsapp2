@@ -1,3 +1,4 @@
+# Routes pour la gestion des inscriptions
 registration:
     path: /api/register
     controller: App\Controller\RegistrationController::register
@@ -20,3 +21,20 @@ api_message_list:
     path: /api/messages
     controller: App\Controller\MessageController::list
     methods: [GET]
+
+# Routes pour la gestion des conversations
+create_conversation:
+    path: /api/conversation
+    controller: App\Controller\ConversationController::createConversation
+    methods: [POST]
+
+list_conversations:
+    path: /api/conversations
+    controller: App\Controller\ConversationController::listConversations
+    methods: [GET]
+
+# Routes pour la gestion des conversations de groupe
+create_group_conversation:
+    path: /api/group-conversation
+    controller: App\Controller\ConversationController::createGroupConversation
+    methods: [POST]

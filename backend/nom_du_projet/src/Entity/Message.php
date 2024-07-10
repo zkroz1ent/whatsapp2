@@ -5,24 +5,28 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity] // Attribut pour marquer la classe comme une entité Doctrine
-#[ORM\Table(name: "message")] // Attribut pour définir le nom de la table
+#[ORM\Entity]
+#[ORM\Table(name: "message")]
 class Message
 {
-    #[ORM\Id] // Attribut pour marquer le champ comme clé primaire
-    #[ORM\GeneratedValue] // Attribut pour indiquer que la valeur est générée automatiquement
-    #[ORM\Column(type: 'integer')] // Attribut pour définir le type de colonne
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'text')] // Attribut pour définir une colonne de type texte
+    #[ORM\Column(type: 'text')]
     private ?string $content = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)] // Attribut pour définir la relation ManyToOne avec l'entité User
-    #[ORM\JoinColumn(nullable: false)] // Attribut pour définir la colonne de jointure
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
     private ?User $sender = null;
 
-    #[ORM\Column(type: 'datetime')] // Attribut pour définir une colonne de type datetime
+    #[ORM\Column(type: 'datetime')]
     private \DateTimeInterface $createdAt;
+
+    #[ORM\ManyToOne(targetEntity: GroupConversation::class, inversedBy: 'messages')]
+    #[ORM\JoinColumn(name: 'group_conversation_id', referencedColumnName: 'id')]
+    private ?GroupConversation $groupConversation = null;
 
     public function __construct()
     {
@@ -60,5 +64,16 @@ class Message
     public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
+    }
+
+    public function getGroupConversation(): ?GroupConversation
+    {
+        return $this->groupConversation;
+    }
+
+    public function setGroupConversation(?GroupConversation $groupConversation): self
+    {
+        $this->groupConversation = $groupConversation;
+        return $this;
     }
 }
