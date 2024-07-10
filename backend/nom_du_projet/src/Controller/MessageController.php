@@ -1,23 +1,25 @@
 <?php
+
 namespace App\Controller;
 
 use App\Entity\Message;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Security;
+use Psr\Log\LoggerInterface;
 
 class MessageController extends AbstractController
 {
     private $entityManager;
-    private $security;
+    private $logger;
 
-    public function __construct(EntityManagerInterface $entityManager, Security $security)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger)
     {
         $this->entityManager = $entityManager;
-        $this->security = $security;
+        $this->logger = $logger;
     }
 
     /**
@@ -27,23 +29,47 @@ class MessageController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['content'])) {
+        if (!isset($data['content']) || !isset($data['sender'])) {
+            $this->logger->error('Invalid input: Missing content or sender');
             return new JsonResponse(['message' => 'Invalid input'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $user = $this->getUser();
-        // if (!$user) {
-        //     return new JsonResponse(['message' => 'Unauthorized'], JsonResponse::HTTP_UNAUTHORIZED);
-        // }
+        $content = $data['content'];
+        $senderId = $data['sender'];
 
-        $message = new Message();
-        $message->setContent($data['content']);
-        $message->setSender($user);
+        // Log the senderId
+        $this->logger->info('Sender ID: ' . $senderId);
 
-        $this->entityManager->persist($message);
-        $this->entityManager->flush();
+        try {
+            // Recherche de l'utilisateur par ID
+            $sender = $this->entityManager->getRepository(User::class)->find($senderId);
 
-        return new JsonResponse(['message' => 'Message sent successfully'], JsonResponse::HTTP_CREATED);
+            if ($sender === null) {
+                $this->logger->error('Sender not found. ID: ' . $senderId);
+                return new JsonResponse(['message' => 'Sender not found'], JsonResponse::HTTP_BAD_REQUEST);
+            }
+
+            $this->logger->info('Sender found: ' . $sender->getUsername());
+
+            $message = new Message();
+            $message->setContent($content);
+            $message->setSender($sender);
+
+            // Log before persisting the message
+            $this->logger->info('Persisting the message');
+
+            $this->entityManager->persist($message);
+            $this->entityManager->flush();
+
+            // Log after the message is persisted
+            $this->logger->info('Message persisted successfully');
+
+            return new JsonResponse(['message' => 'Message sent successfully'], JsonResponse::HTTP_CREATED);
+
+        } catch (\Exception $e) {
+            $this->logger->error('Error while sending message: ' . $e->getMessage());
+            return new JsonResponse(['message' => 'An error occurred while sending the message'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -52,6 +78,18 @@ class MessageController extends AbstractController
     public function list(): JsonResponse
     {
         // Implémentation de la méthode GET pour lister les messages
-        return new JsonResponse(['message' => 'Listing messages'], JsonResponse::HTTP_OK);
+        $messages = $this->entityManager->getRepository(Message::class)->findAll();
+
+        $response = [];
+        foreach ($messages as $message) {
+            $response[] = [
+                'id' => $message->getId(),
+                'content' => $message->getContent(),
+                'sender' => $message->getSender()->getUsername(),
+                'createdAt' => $message->getCreatedAt()->format('Y-m-d H:i:s')
+            ];
+        }
+
+        return new JsonResponse($response, JsonResponse::HTTP_OK);
     }
 }
