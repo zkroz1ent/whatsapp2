@@ -1,16 +1,16 @@
 security:
     enable_authenticator_manager: true
 
-    # Configuration des règles de hachage de mot de passe pour Test1
+    # Configuration des règles de hachage de mot de passe pour User
     password_hashers:
-        App\Entity\Test1:
+        App\Entity\User:
             algorithm: auto
 
     # Fournisseurs utilisateurs
     providers:
         app_user_provider:
             entity:
-                class: App\Entity\Test1
+                class: App\Entity\User
                 property: test
 
     firewalls:

@@ -1,14 +1,16 @@
 <?php
+// src/Entity/User.php
 
 namespace App\Entity;
 
-use App\Repository\Test1Repository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-#[ORM\Entity(repositoryClass: Test1Repository::class)]
-class Test1 implements UserInterface, PasswordAuthenticatedUserInterface
+#[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ORM\Table(name: "user")]
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -24,21 +26,9 @@ class Test1 implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string')]
     private ?string $password = null;
 
-    /**
-     * @ORM\Column(type="string", length=180, unique=true)
-     */
-    private $email;
-
-    public function getEmail(): ?string
-    {
-        return $this->email;
-    }
-
-    public function setEmail(string $email): self
-    {
-        $this->email = $email;
-        return $this;
-    }
+    // Ajoutez d'autres champs si nécessaire
+    #[ORM\Column(type: "string", length: 180, unique: true)]
+    private ?string $email = null;
 
     public function getId(): ?int
     {
@@ -56,8 +46,6 @@ class Test1 implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-
-
     public function getPassword(): ?string
     {
         return $this->password;
@@ -68,7 +56,6 @@ class Test1 implements UserInterface, PasswordAuthenticatedUserInterface
         $this->password = $password;
         return $this;
     }
-
 
     public function getRoles(): array
     {
@@ -81,6 +68,17 @@ class Test1 implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): self
+    {
+        $this->email = $email;
+        return $this;
+    }
+
     public function getUserIdentifier(): string
     {
         return $this->username;
@@ -88,6 +86,6 @@ class Test1 implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials()
     {
-        // Implement if needed
+        // Implémentez si nécessaire
     }
 }
