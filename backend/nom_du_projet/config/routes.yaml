@@ -13,7 +13,7 @@ profile:
 # Routes pour la gestion des messages
 api_message_new:
     path: /api/message
-    controller: App\Controller\MessageController::new
+    controller: App\Controller\MessageController::sendMessage
     methods: [POST]
 
 api_message_list:

@@ -65,6 +65,7 @@ export default {
         localStorage.setItem('token', token);
 
         console.log('Connexion réussie:', response.data);
+        this.$router.push('/chat');
       } catch (error) {
         console.error('Erreur lors de la connexion:', error);
       }

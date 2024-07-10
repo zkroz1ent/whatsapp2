@@ -2,32 +2,30 @@
 
 namespace App\Service;
 
+use App\Entity\Test1;
 use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
+use Psr\Log\LoggerInterface;
 
 class JWTService
 {
     private $secretKey;
+    private $logger;
 
-    public function __construct(string $secretKey)
+    public function __construct(string $secretKey, LoggerInterface $logger)
     {
         $this->secretKey = $secretKey;
+        $this->logger = $logger;
     }
 
-    public function createToken(array $data): string
+    public function createToken(Test1 $user): string
     {
-        $issuedAt = time();
-        $expirationTime = $issuedAt + 3600;  // token valide pour 1 heure
-        $payload = array_merge($data, [
-            'iat' => $issuedAt,
-            'exp' => $expirationTime,
-        ]);
+        $payload = [
+            'user' => $user->getUsername(),
+            'exp' => (new \DateTime('+1 hour'))->getTimestamp()
+        ];
+
+        $this->logger->info('Creating JWT token for user: ' . $user->getUsername());
 
         return JWT::encode($payload, $this->secretKey, 'HS256');
-    }
-
-    public function validateToken(string $token): array
-    {
-        return (array) JWT::decode($token, new Key($this->secretKey, 'HS256'));
     }
 }
