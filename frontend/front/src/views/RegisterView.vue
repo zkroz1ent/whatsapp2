@@ -77,7 +77,6 @@ export default {
   },
   methods: {
     async handleRegister() {
-      // Vérifiez si les mots de passe correspondent
       if (this.password !== this.confirmPassword) {
         Swal.fire({
           icon: "error",
@@ -87,8 +86,6 @@ export default {
         });
         return;
       }
-
-      // Vérifiez si le mot de passe respecte la regex
       const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
       if (!passwordRegex.test(this.password)) {
         Swal.fire({
@@ -99,8 +96,6 @@ export default {
         });
         return;
       }
-
-      // Préparez les données pour l'inscription
       const userData = {
         username: this.username,
         email: this.email,
@@ -108,16 +103,18 @@ export default {
       };
 
       try {
-        // Faites un appel POST à votre API d'inscription
-        const response = await axios.post('https://votre-api.com/register', userData);
-        
-        // Gérez la réponse de l'API
+        const response = await axios.post('http://127.0.0.1:8000/api/register', userData);
+
         console.log('Réponse de l\'API:', response.data);
 
-        // Redirigez l'utilisateur vers la page de connexion ou autre
+        console.log('Inscription réussie:', response.data);
+
+        console.table(userData);
+
         this.$router.push('/login');
+
+
       } catch (error) {
-        // Gérez les erreurs éventuelles
         Swal.fire({
           icon: "error",
           title: "Oops...",
@@ -130,7 +127,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-/* Ajoutez ici des styles spécifiques à ce composant si nécessaire */
-</style>

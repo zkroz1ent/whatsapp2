@@ -33,7 +33,7 @@ class RegistrationController extends AbstractController
                     $data['password']
                 )
             );
-
+            $user->setEmail($data['email']);
             // Sauvegarde de l'utilisateur en base de données
             $entityManager->persist($user);
             $entityManager->flush();
