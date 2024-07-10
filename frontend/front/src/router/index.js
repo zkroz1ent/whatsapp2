@@ -5,6 +5,7 @@ import RegisterView from '../views/RegisterView.vue'
 import ChatPage from '../views/ChatPage.vue'
 import GroupPage from '../views/GroupPage.vue'
 import ProfilePage from '../views/Profil/ProfilePage.vue'
+import SettingsPage from '../views/Settings/SettingsPage.vue'
 const routes = [
   {
     path: '/',
@@ -35,6 +36,11 @@ const routes = [
     path: '/profile',
     name: 'ProfilePage',
     component: ProfilePage
+  },
+  {
+    path: '/settings',
+    name: 'SettingsPage',
+    component: SettingsPage
   },
   {
     path: '/about',
