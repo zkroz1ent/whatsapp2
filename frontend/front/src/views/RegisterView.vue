@@ -1,6 +1,6 @@
 <template>
   <div class="dark:bg-slate-900 flex items-center justify-center min-h-screen bg-gray-100">
-    <div class="bg-slate-200 dark:bg-slate-700 w-full max-w-md p-8 space-y-8 rounded-lg shadow-md">
+    <div class="bg-slate-300 dark:bg-slate-700 w-full max-w-md p-8 space-y-8 rounded-lg shadow-md">
       <h1 class="dark:text-white text-2xl font-bold text-center text-gray-900">Inscription</h1>
       <form @submit.prevent="handleRegister" class="space-y-6">
         <div class="relative">
