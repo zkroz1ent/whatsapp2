@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Controller;
 
 use App\Entity\User;
@@ -31,26 +32,98 @@ class SecurityController extends AbstractController
             return new JsonResponse(['message' => 'Invalid input'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        // $this->logger->info('Received username: ' . $data['username']);
+        // Journalisation du nom d'utilisateur reçu
+        $this->logger->info('Received username: ' . $data['username']);
 
+        // Récupération de l'utilisateur par son nom d'utilisateur
         $user = $entityManager->getRepository(User::class)->findOneBy(['username' => $data['username']]);
         if (!$user) {
-            // $this->logger->error('User not found: ' . $data['username']);
+            // Journalisation de l'utilisateur non trouvé
+            $this->logger->error('User not found: ' . $data['username']);
             return new JsonResponse(['message' => 'Invalid credentials'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
+        // Vérification de la validité du mot de passe
         if (!$passwordHasher->isPasswordValid($user, $data['password'])) {
-            // $this->logger->error('Invalid password for user: ' . $data['username']);
+            // Journalisation du mot de passe invalide
+            $this->logger->error('Invalid password for user: ' . $data['username']);
             return new JsonResponse(['message' => 'Invalid credentials'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
-        // $this->logger->info('User authenticated: ' . $data['username']);
+        // Journalisation de l'authentification réussie
+        $this->logger->info('User authenticated: ' . $data['username']);
 
-        // Correct method call
+        // Création du JWT
         $jwt = $this->jwtService->createToken($user);
 
-        // $this->logger->info('JWT created for user: ' . $data['username']);
+        // Journalisation de la création du JWT
+        $this->logger->info('JWT created for user: ' . $data['username']);
 
-        return new JsonResponse(['token' => $jwt], JsonResponse::HTTP_OK);
+        // Retourner le JWT et l'ID de l'utilisateur
+        return new JsonResponse([
+            'token' => $jwt,
+            'userId' => $user->getId()
+        ], JsonResponse::HTTP_OK);
+    }
+    #[Route('/api/user-info/{id}', name: 'api_user_info', methods: ['GET'])]
+    public function getUserInfo(int $id, EntityManagerInterface $entityManager): JsonResponse
+    {
+        try {
+
+            $user = $entityManager->getRepository(User::class)->findOneBy(['id' => $id]);
+
+            if (!$user) {
+                $this->logger->error('No user found with ID: ' . $id);
+                return new JsonResponse(['message' => 'User not found'], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            $userInfo = [
+                'id' => $user->getId(),
+                'username' => $user->getUsername(),
+                // 'name' => $user->getName(),
+                'email' => $user->getEmail(),
+            ];
+
+            $this->logger->info('User info retrieved for user: ' . $user->getUsername());
+
+            return new JsonResponse($userInfo, JsonResponse::HTTP_OK);
+        } catch (\Exception $e) {
+            $this->logger->error('Error retrieving user info: ' . $e->getMessage());
+            return new JsonResponse(['message' => 'An error occurred while retrieving user info'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    #[Route('/api/update-user/{id}', name: 'update-user', methods: ['PATCH'])]
+  
+    public function updateUserInfo(int $id, Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        try {
+            $user = $entityManager->getRepository(User::class)->findOneBy(['id' => $id]);
+
+            if (!$user) {
+                $this->logger->error('No user found with ID: ' . $id);
+                return new JsonResponse(['message' => 'User not found'], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            $data = json_decode($request->getContent(), true);
+
+            if (isset($data['username'])) {
+                $user->setUsername($data['username']);
+            }
+
+            if (isset($data['email'])) {
+                $user->setEmail($data['email']);
+            }
+
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            $this->logger->info('User info updated for user: ' . $user->getUsername());
+
+            return new JsonResponse(['message' => 'User info updated successfully'], JsonResponse::HTTP_OK);
+        } catch (\Exception $e) {
+            $this->logger->error('Error updating user info: ' . $e->getMessage());
+            return new JsonResponse(['message' => 'An error occurred while updating user info'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

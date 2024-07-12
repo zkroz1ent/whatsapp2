@@ -8,9 +8,13 @@ login:
     controller: App\Controller\SecurityController::login
 
 profile:
-    path: /api/profile
-    controller: App\Controller\UserController::profile
-
+    path: /api/user-info/{id}
+    controller: App\Controller\SecurityController::getUserInfo
+    methods: [GET] 
+profileUpdate:
+    path: /api/update-user/{id}
+    controller: App\Controller\SecurityController::updateUserInfo
+    methods: ['PATCH'] 
 # Routes pour la gestion des messages
 api_message_new:
     path: /api/message

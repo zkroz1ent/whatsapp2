@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Controller;
 
 use App\Entity\GroupConversation;
@@ -28,8 +29,10 @@ class ConversationController extends AbstractController
      */
     public function createConversation(Request $request): JsonResponse
     {
+        // Décodage du contenu JSON de la requête
         $data = json_decode($request->getContent(), true);
 
+        // Vérification des champs essentiels
         if (!isset($data['content']) || !isset($data['sender']) || !isset($data['receiver'])) {
             $this->logger->error('Invalid input: Missing content, sender, or receiver');
             return new JsonResponse(['message' => 'Invalid input'], JsonResponse::HTTP_BAD_REQUEST);
@@ -39,32 +42,45 @@ class ConversationController extends AbstractController
         $senderId = $data['sender'];
         $receiverId = $data['receiver'];
 
-        $this->logger->info('Sender ID: ' . $senderId . ' Receiver ID: ' . $receiverId);
+        $this->logger->info('Received request to create conversation', [
+            'senderId' => $senderId,
+            'receiverId' => $receiverId,
+            'content' => $content
+        ]);
 
         try {
-            // Récupérer l'utilisateur par ID
+            // Récupérer les utilisateurs par ID
             $sender = $this->entityManager->getRepository(User::class)->find($senderId);
             $receiver = $this->entityManager->getRepository(User::class)->find($receiverId);
 
+            // Vérifier si les utilisateurs existent
             if ($sender === null || $receiver === null) {
-                $this->logger->error('Sender or receiver not found. Sender ID: ' . $senderId . ' Receiver ID: ' . $receiverId);
+                $this->logger->error('Sender or receiver not found', [
+                    'senderId' => $senderId,
+                    'receiverId' => $receiverId
+                ]);
                 return new JsonResponse(['message' => 'Sender or receiver not found'], JsonResponse::HTTP_BAD_REQUEST);
             }
 
-            $this->logger->info('Sender found: ' . $sender->getUsername() . ' Receiver found: ' . $receiver->getUsername());
-
-            // Créer et persister le message
+            // Créer un nouveau message
             $message = new Message();
             $message->setContent($content);
             $message->setSender($sender);
             $message->setReceiver($receiver);
+
+            // Persister le message en base de données
             $this->entityManager->persist($message);
             $this->entityManager->flush();
 
-            return new JsonResponse(['message' => 'Conversation created successfully'], JsonResponse::HTTP_CREATED);
+            $this->logger->info('Conversation created successfully', ['messageId' => $message->getId()]);
 
+            return new JsonResponse(['message' => 'Conversation created successfully'], JsonResponse::HTTP_CREATED);
         } catch (\Exception $e) {
-            $this->logger->error('Error while creating conversation: ' . $e->getMessage());
+            // Gestion des erreurs
+            $this->logger->error('Error while creating conversation', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return new JsonResponse(['message' => 'An error occurred while creating the conversation'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -139,7 +155,6 @@ class ConversationController extends AbstractController
             $this->entityManager->flush();
 
             return new JsonResponse(['message' => 'Group conversation created successfully'], JsonResponse::HTTP_CREATED);
-
         } catch (\Exception $e) {
             $this->logger->error('Error while creating group conversation: ' . $e->getMessage());
             return new JsonResponse(['message' => 'An error occurred while creating the group conversation'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
