@@ -5,7 +5,6 @@ use App\Entity\GroupConversation;
 use App\Entity\Message;
 use App\Entity\User;
 use App\Entity\Conversation;
-
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,39 +30,35 @@ class ConversationController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['content']) || !isset($data['sender'])) {
-            $this->logger->error('Invalid input: Missing content or sender');
+        if (!isset($data['content']) || !isset($data['sender']) || !isset($data['receiver'])) {
+            $this->logger->error('Invalid input: Missing content, sender, or receiver');
             return new JsonResponse(['message' => 'Invalid input'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
         $content = $data['content'];
         $senderId = $data['sender'];
+        $receiverId = $data['receiver'];
 
-        $this->logger->info('Sender ID: ' . $senderId);
+        $this->logger->info('Sender ID: ' . $senderId . ' Receiver ID: ' . $receiverId);
 
         try {
             // Récupérer l'utilisateur par ID
             $sender = $this->entityManager->getRepository(User::class)->find($senderId);
-            if ($sender === null) {
-                $this->logger->error('Sender not found. ID: ' . $senderId);
-                return new JsonResponse(['message' => 'Sender not found'], JsonResponse::HTTP_BAD_REQUEST);
+            $receiver = $this->entityManager->getRepository(User::class)->find($receiverId);
+
+            if ($sender === null || $receiver === null) {
+                $this->logger->error('Sender or receiver not found. Sender ID: ' . $senderId . ' Receiver ID: ' . $receiverId);
+                return new JsonResponse(['message' => 'Sender or receiver not found'], JsonResponse::HTTP_BAD_REQUEST);
             }
 
-            $this->logger->info('Sender found: ' . $sender->getUsername());
+            $this->logger->info('Sender found: ' . $sender->getUsername() . ' Receiver found: ' . $receiver->getUsername());
 
             // Créer et persister le message
             $message = new Message();
             $message->setContent($content);
             $message->setSender($sender);
+            $message->setReceiver($receiver);
             $this->entityManager->persist($message);
-            $this->entityManager->flush();
-
-            // Créer et persister la conversation
-            $conversation = new Conversation();
-            $conversation->setUser($sender);
-            $conversation->setMessage($message);
-
-            $this->entityManager->persist($conversation);
             $this->entityManager->flush();
 
             return new JsonResponse(['message' => 'Conversation created successfully'], JsonResponse::HTTP_CREATED);
@@ -139,7 +134,7 @@ class ConversationController extends AbstractController
             $message = new Message();
             $message->setContent($content);
             $message->setSender($sender);
-            $message->setGroupConversation($groupConversation);
+            $message->setGroup($groupConversation);
             $this->entityManager->persist($message);
             $this->entityManager->flush();
 

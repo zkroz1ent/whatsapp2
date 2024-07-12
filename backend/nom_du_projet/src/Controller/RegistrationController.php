@@ -10,18 +10,27 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
+use Psr\Log\LoggerInterface;
 
 class RegistrationController extends AbstractController
 {
+    private $logger;
+
+    public function __construct(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+    }
+
     #[Route('/api/register', name: 'registration', methods: ['POST'])]
     public function register(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): JsonResponse
     {
         try {
+            // Lecture et décodage des données de la requête
             $data = json_decode($request->getContent(), true);
 
             // Validation des données reçues
-            if (!isset($data['username']) || !isset($data['password'])) {
-                return new JsonResponse(['message' => 'Invalid input'], JsonResponse::HTTP_BAD_REQUEST);
+            if (!isset($data['username']) || !isset($data['password']) || !isset($data['email'])) {
+                return new JsonResponse(['message' => 'Invalid input. Username, password, and email are required.'], JsonResponse::HTTP_BAD_REQUEST);
             }
 
             // Création de l'utilisateur
@@ -34,15 +43,29 @@ class RegistrationController extends AbstractController
                 )
             );
             $user->setEmail($data['email']);
+            $user->setPhonenumber($data['phonenumber']);
+            // Journaliser l'objet User avant persistance
+            $this->logger->info('User object before persistence:', [
+                'username' => $user->getUsername(),
+                'email' => $user->getEmail(),
+                // Ne pas loguer le mot de passe pour des raisons de sécurité
+            ]);
+
             // Sauvegarde de l'utilisateur en base de données
             $entityManager->persist($user);
             $entityManager->flush();
 
             return new JsonResponse(['message' => 'User successfully registered'], JsonResponse::HTTP_CREATED);
+
         } catch (UnexpectedValueException $e) {
+            $this->logger->warning('Unexpected value received.', ['exception' => $e]);
             return new JsonResponse(['message' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         } catch (\Exception $e) {
-            return new JsonResponse(['message' => 'Internal server error: ' . $e->getMessage()], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+            // Loguer l'erreur dans le logger
+            $this->logger->error('User registration failed: ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
+            return new JsonResponse(['message' => 'Internal server error. Please try again later.'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

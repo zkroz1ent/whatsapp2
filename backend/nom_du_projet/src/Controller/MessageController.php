@@ -86,7 +86,9 @@ class MessageController extends AbstractController
                 'id' => $message->getId(),
                 'content' => $message->getContent(),
                 'sender' => $message->getSender()->getUsername(),
-                'createdAt' => $message->getCreatedAt()->format('Y-m-d H:i:s')
+                'createdAt' => $message->getCreatedAt()->format('Y-m-d H:i:s'),
+                'group' => $message->getGroup() ? $message->getGroup()->getName() : null,
+                'receiver' => $message->getReceiver() ? $message->getReceiver()->getUsername() : null,
             ];
         }
 

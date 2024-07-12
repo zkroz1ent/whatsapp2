@@ -1,12 +1,13 @@
 <?php
-// src/Entity/GroupConversation.php
 
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity]
-#[ORM\Table(name: "group_conversation")]
+#[ORM\Table(name: 'group_conversation')]
 class GroupConversation
 {
     #[ORM\Id]
@@ -14,25 +15,19 @@ class GroupConversation
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: "string", length: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     private ?string $name = null;
 
-    #[ORM\ManyToMany(targetEntity: User::class)]
-    #[ORM\JoinTable(name: "group_conversation_users",
-        joinColumns: [#[ORM\JoinColumn(name: "group_conversation_id", referencedColumnName: "id")]],
-        inverseJoinColumns: [#[ORM\JoinColumn(name: "user_id", referencedColumnName: "id")]]
-    )]
-    private $users;
+    #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'groups')]
+    private Collection $users;
 
-    // Construire la Many-to-Many relation pour les messages
-    #[ORM\OneToMany(mappedBy: 'groupConversation', targetEntity: Message::class)]
-    private $messages;
+    #[ORM\OneToMany(mappedBy: 'group', targetEntity: Message::class)]
+    private Collection $messages;
 
-    // Getters and Setters...
     public function __construct()
     {
-        $this->users = new \Doctrine\Common\Collections\ArrayCollection();
-        $this->messages = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->users = new ArrayCollection();
+        $this->messages = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -51,7 +46,7 @@ class GroupConversation
         return $this;
     }
 
-    public function getUsers()
+    public function getUsers(): Collection
     {
         return $this->users;
     }
@@ -60,26 +55,39 @@ class GroupConversation
     {
         if (!$this->users->contains($user)) {
             $this->users[] = $user;
+            $user->addGroup($this);
         }
         return $this;
     }
 
     public function removeUser(User $user): self
     {
-        $this->users->removeElement($user);
+        if ($this->users->removeElement($user)) {
+            $user->removeGroup($this);
+        }
         return $this;
     }
 
-    public function getMessages()
+    public function getMessages(): Collection
     {
         return $this->messages;
     }
 
-    public function setMessages(Message $message): self
+    public function addMessage(Message $message): self
     {
         if (!$this->messages->contains($message)) {
             $this->messages[] = $message;
-            $message->setGroupConversation($this);
+            $message->setGroup($this);
+        }
+        return $this;
+    }
+
+    public function removeMessage(Message $message): self
+    {
+        if ($this->messages->removeElement($message)) {
+            if ($message->getGroup() === $this) {
+                $message->setGroup(null);
+            }
         }
         return $this;
     }

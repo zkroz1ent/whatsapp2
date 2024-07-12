@@ -1,12 +1,11 @@
 <?php
-// src/Entity/Conversation.php
 
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: "conversation")]
+#[ORM\Table(name: 'conversation')]
 class Conversation
 {
     #[ORM\Id]
@@ -15,14 +14,13 @@ class Conversation
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false, name: "id_user", referencedColumnName: "id")]
+    #[ORM\JoinColumn(nullable: false, name: 'user_id', referencedColumnName: 'id')]
     private ?User $user = null;
 
     #[ORM\ManyToOne(targetEntity: Message::class)]
-    #[ORM\JoinColumn(nullable: false, name: "id_message", referencedColumnName: "id")]
+    #[ORM\JoinColumn(nullable: false, name: 'message_id', referencedColumnName: 'id')]
     private ?Message $message = null;
 
-    // Getters and Setters...
     public function getId(): ?int
     {
         return $this->id;
