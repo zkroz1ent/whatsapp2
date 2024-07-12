@@ -82,7 +82,6 @@ export default {
           icon: "error",
           title: "Oops...",
           text: "Les mots de passe ne correspondent pas!",
-          footer: '<a href="#">Pourquoi ai-je ce problème?</a>'
         });
         return;
       }
@@ -92,7 +91,6 @@ export default {
           icon: "error",
           title: "Oops...",
           text: "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.",
-          footer: '<a href="#">Pourquoi ai-je ce problème?</a>'
         });
         return;
       }
@@ -119,7 +117,6 @@ export default {
           icon: "error",
           title: "Oops...",
           text: "Une erreur est survenue lors de l'inscription. Veuillez réessayer.",
-          footer: '<a href="#">Pourquoi ai-je ce problème?</a>'
         });
         console.error('Erreur lors de l\'inscription:', error);
       }
