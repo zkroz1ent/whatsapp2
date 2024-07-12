@@ -3,6 +3,7 @@
     <div class="bg-slate-200 dark:bg-slate-700 w-full max-w-md p-8 space-y-8 rounded-lg shadow-md">
       <h1 class="dark:text-white text-2xl font-bold text-center text-gray-900">Inscription</h1>
       <form @submit.prevent="handleRegister" class="space-y-6">
+
         <div class="relative">
           <label class="font-bold dark:text-white p-2 text-gray-500">
             Nom d'utilisateur
@@ -14,6 +15,7 @@
             class="w-full px-3 py-4 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
           />
         </div>
+
         <div class="relative">
           <label class="font-bold dark:text-white p-2 text-gray-500">
             Email
@@ -25,6 +27,19 @@
             class="w-full px-3 py-4 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
           />
         </div>
+
+        <div class="relative">
+          <label class="font-bold dark:text-white p-2 text-gray-500">
+            Numéro de téléphone
+          </label>
+          <input
+            type="text"
+            v-model="phonenumber"
+            required
+            class="w-full px-3 py-4 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+          />
+        </div>
+
         <div class="relative">
           <label class="font-bold dark:text-white p-2 text-gray-500">
             Mot de passe
@@ -36,6 +51,7 @@
             class="w-full px-3 py-4 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
           />
         </div>
+
         <div class="relative">
           <label class="font-bold dark:text-white p-2 text-gray-500">
             Confirmez le mot de passe
@@ -47,6 +63,7 @@
             class="w-full px-3 py-4 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
           />
         </div>
+
         <button
           type="submit"
           class="font-bold w-full px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -60,7 +77,6 @@
     </div>
   </div>
 </template>
-
 <script>
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -71,6 +87,7 @@ export default {
     return {
       username: '',
       email: '',
+      phonenumber: '',  // Ajout du numéro de téléphone
       password: '',
       confirmPassword: ''
     };
@@ -85,6 +102,7 @@ export default {
         });
         return;
       }
+
       const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
       if (!passwordRegex.test(this.password)) {
         Swal.fire({
@@ -94,9 +112,11 @@ export default {
         });
         return;
       }
+
       const userData = {
         username: this.username,
         email: this.email,
+        phonenumber: this.phonenumber,  // Inclusion du numéro de téléphone dans les données utilisateur
         password: this.password
       };
 
@@ -104,14 +124,10 @@ export default {
         const response = await axios.post('http://127.0.0.1:8000/api/register', userData);
 
         console.log('Réponse de l\'API:', response.data);
-
         console.log('Inscription réussie:', response.data);
-
         console.table(userData);
 
         this.$router.push('/login');
-
-
       } catch (error) {
         Swal.fire({
           icon: "error",
