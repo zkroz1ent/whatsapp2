@@ -16,10 +16,7 @@ profileUpdate:
     controller: App\Controller\SecurityController::updateUserInfo
     methods: ["PATCH"]
 # Routes pour la gestion des messages
-api_message_new:
-    path: /api/message
-    controller: App\Controller\MessageController::sendMessage
-    methods: [POST]
+
 
 api_message_list:
     path: /api/messages
@@ -42,8 +39,43 @@ create_group_conversation:
     path: /api/group-conversation
     controller: App\Controller\ConversationController::createGroupConversation
     methods: [POST]
-    
+
 list_users:
     path: /api/users
     controller: App\Controller\UserController::listUsers
     methods: [GET]
+
+list_commissions:
+    path: /api/commissions
+    controller: App\Controller\CommissionController::listCommissions
+    methods: [GET]
+
+create_commission:
+    path: /api/commissions
+    controller: App\Controller\CommissionController::createCommission
+    methods: [POST]
+
+send_message:
+    path: /api/message
+    controller: App\Controller\MessageController::sendMessage
+    methods: [POST]
+
+get_global_messages:
+    path: /api/messages/global
+    controller: App\Controller\MessageController::getGlobalMessages
+    methods: [GET]
+
+get_commission_messages:
+    path: /api/messages/commission/{id}
+    controller: App\Controller\MessageController::getCommissionMessages
+    methods: [GET]
+
+get_notifications:
+    path: /api/notifications
+    controller: App\Controller\NotificationController::getNotifications
+    methods: [GET]
+
+update_notifications:
+    path: /api/notifications
+    controller: App\Controller\NotificationController::updateNotifications
+    methods: [POST]

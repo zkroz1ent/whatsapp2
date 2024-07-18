@@ -1,5 +1,6 @@
 <template>
   <div class="flex h-screen">
+
     <!-- Liste des conversations -->
     <div :class="['w-1/4 bg-gray-100 dark:bg-slate-900 border-r border-gray-300 transition-transform transform', { '-translate-x-full': !isSidebarOpen }]">
       <div class="p-4 border-b border-gray-300 flex justify-between items-center">
@@ -7,256 +8,337 @@
         <button @click="toggleSidebar" class="ml-2 bg-green-500 text-white p-2 rounded">⇦</button>
       </div>
       <div class="overflow-y-auto h-full">
+        <!-- Sections de Conversations ... -->
+
         <div class="p-4">
-          <h2 class="text-xl dark:text-white font-bold mb-2">Personnelles</h2>
-          <button @click="showCreateConversationModal = true" class="my-2 bg-blue-500 text-white p-2 rounded">Nouvelle Conversation</button>
+          <h2 class="text-xl dark:text-white font-bold mb-2">Notifications</h2>
           <ul>
-            <li v-for="(conversation, index) in filteredPersonalConversations" :key="index"
-                @click="selectConversation(index, 'personal')"
-                class="cursor-pointer p-4 border-b border-gray-300 hover:scale-110">
-              <div class="font-bold dark:text-white">{{ conversation.name }}</div>
-              <div class="text-sm dark:text-white text-gray-600">{{ conversation.lastMessage }}</div>
+            <li v-for="notif in receivedNotifications" :key="notif.id">
+              {{ notif.content }} - {{ notif.createdAt }}
             </li>
           </ul>
+          <button @click="showNotificationSettings = true" class="my-2 bg-blue-500 text-white p-2 rounded">Gérer les Notifications</button>
         </div>
-        <div class="p-4">
-          <h2 class="text-xl dark:text-white font-bold mb-2">Groupes</h2>
-          <button @click="showCreateGroupModal = true" class="my-2 bg-blue-500 text-white p-2 rounded">Nouveau Groupe</button>
-          <ul>
-            <li v-for="(conversation, index) in filteredGroupConversations" :key="index"
-                @click="selectConversation(index, 'group')"
-                class="cursor-pointer dark:text-white p-4 border-b border-gray-300 hover:scale-110">
-              <div class="font-bold">{{ conversation.name }}</div>
-              <div class="text-sm dark:text-white text-gray-600">{{ conversation.lastMessage }}</div>
-            </li>
-          </ul>
-        </div>
+
       </div>
     </div>
 
     <!-- Fenêtre de chat -->
-    <div class="flex-1 flex flex-col" v-if="selectedConversation">
+    <div class="flex-1 flex flex-col" v-if="selectedConversation || isGlobal">
       <div class="p-2 border-b border-gray-300 flex items-center">
         <button @click="toggleSidebar" class="mr-2 bg-green-500 text-white p-2 rounded">⇨</button>
-        <div class="font-bold dark:text-white">{{ selectedConversation.name }}</div>
+        <div class="font-bold dark:text-white">{{ isGlobal ? 'Fil Global' : selectedConversation.name }}</div>
       </div>
       <div class="flex-1 overflow-y-auto p-4">
-        <div v-for="(message, index) in selectedConversation.messages" :key="index"
-             :class="{ 'text-right': message.isMine }">
+        <div v-for="(message, index) in (isGlobal ? globalMessages : selectedConversation.messages)" :key="index" :class="{ 'text-right': message.isMine }">
           <div :class="['inline-block p-2 rounded-lg', message.isMine ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-800']">
-            {{ message.text }}
+            {{ message.content }}
           </div>
         </div>
       </div>
       <div class="p-4 border-t border-gray-300 flex items-center">
-        <input v-model="newMessage" type="text" placeholder="Tapez un message..." class="flex-1 p-2 border rounded"
-               @keyup.enter="sendMessage" />
+        <input v-model="newMessage" type="text" placeholder="Tapez un message..." class="flex-1 p-2 border rounded" @keyup.enter="sendMessage" />
         <button @click="sendMessage" class="ml-2 bg-green-500 text-white p-2 rounded">Envoyer</button>
       </div>
     </div>
 
-    <!-- Modale de création de conversation -->
-    <div v-if="showCreateConversationModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-      <div class="bg-white p-4 rounded shadow-lg w-1/3">
-        <h2 class="font-bold text-xl mb-4">Nouvelle Conversation</h2>
-        <select v-model="newConversationUser" class="w-full p-2 border mb-4 rounded">
-          <option v-for="user in users" :key="user.id" :value="user.id">{{ user.username }}</option>
-        </select>
-        <input v-model="newConversationMessage" type="text" placeholder="Message" class="w-full p-2 border mb-4 rounded" />
-        <div class="flex justify-end">
-          <button @click="showCreateConversationModal = false" class="bg-gray-500 text-white p-2 rounded mr-2">Annuler</button>
-          <button @click="createConversation" class="bg-blue-500 text-white p-2 rounded">Créer</button>
-        </div>
-      </div>
-    </div>
+    <!-- Afficher NotificationSettings si showNotificationSettings est vrai -->
+    <NotificationSettings v-if="showNotificationSettings" @close="showNotificationSettings = false" />
 
-    <!-- Modale de création de groupe -->
-    <div v-if="showCreateGroupModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-      <div class="bg-white p-4 rounded shadow-lg w-1/3">
-        <h2 class="font-bold text-xl mb-4">Nouveau Groupe</h2>
-        <input v-model="newGroupName" type="text" placeholder="Nom du Groupe" class="w-full p-2 border mb-4 rounded" />
-        <select v-model="newGroupUsers" multiple class="w-full p-2 border mb-4 rounded">
-          <option v-for="user in users" :key="user.id" :value="user.id">{{ user.username }}</option>
-        </select>
-        <input v-model="newGroupMessage" type="text" placeholder="Message" class="w-full p-2 border mb-4 rounded" />
-        <div class="flex justify-end">
-          <button @click="showCreateGroupModal = false" class="bg-gray-500 text-white p-2 rounded mr-2">Annuler</button>
-          <button @click="createGroupConversation" class="bg-blue-500 text-white p-2 rounded">Créer</button>
-        </div>
-      </div>
-    </div>
+    <!-- Modales existantes ... -->
   </div>
 </template>
 
 <script>
+import { reactive, toRefs } from 'vue';
 import axios from 'axios';
+import NotificationSettings from '../components/NotificationSettings.vue';  // Assurez-vous que le chemin est correct
 
 export default {
   name: 'ChatPage',
-  data() {
-    return {
+  components: { NotificationSettings },
+  setup() {
+    const state = reactive({
       searchQuery: '',
       isSidebarOpen: true,
       personalConversations: [],
       groupConversations: [],
       users: [],
+      commissions: [],
+      globalMessages: [],
       selectedConversationIndex: 0,
       selectedConversationType: 'personal',
       newMessage: '',
       showCreateConversationModal: false,
       showCreateGroupModal: false,
+      showCreateCommissionModal: false,
       newConversationUser: '',
       newConversationMessage: '',
       newGroupName: '',
       newGroupUsers: [],
-      newGroupMessage: ''
+      newGroupMessage: '',
+      newCommissionName: '',
+      isGlobal: false,
+      selectedConversation: {},
+      receivedNotifications: [],
+      showNotificationSettings: false  // Pour afficher NotificationSettings
+    });
+
+    // Méthodes
+    const loadGlobalMessages = async () => {
+      const token = localStorage.getItem('token');
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/api/messages/global', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        state.globalMessages = response.data;
+      } catch (error) {
+        console.error('Erreur lors de la récupération des messages globaux:', error);
+      }
     };
-  },
-  computed: {
-    filteredPersonalConversations() {
-      return this.personalConversations.filter(conversation =>
-        conversation.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        conversation.lastMessage.toLowerCase().includes(this.searchQuery.toLowerCase())
-      );
-    },
-    filteredGroupConversations() {
-      return this.groupConversations.filter(conversation =>
-        conversation.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        conversation.lastMessage.toLowerCase().includes(this.searchQuery.toLowerCase())
-      );
-    },
-    filteredUsers() {
-      return this.users.filter(user =>
-        user.username.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(this.searchQuery.toLowerCase())
-      );
-    },
-    selectedConversation() {
-      const conversations = this.selectedConversationType === 'personal'
-        ? this.personalConversations
-        : this.groupConversations;
-      return conversations[this.selectedConversationIndex] || null;
-    }
-  },
-  methods: {
-    selectConversation(index, type) {
-      this.selectedConversationIndex = index;
-      this.selectedConversationType = type;
-    },
-    async sendMessage() {
-      if (this.newMessage.trim() !== '') {
-        this.selectedConversation.messages.push({ text: this.newMessage, isMine: true });
 
-        const postData = { "content": this.newMessage };
+    const loadConversationMessages = async (conversationId) => {
+      const token = localStorage.getItem('token');
+      try {
+        const response = await axios.get(`http://127.0.0.1:8000/api/messages/commission/${conversationId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        state.selectedConversation.messages = response.data;
+      } catch (error) {
+        console.error('Erreur lors de la récupération des messages de la commission:', error);
+      }
+    };
 
-        this.newMessage = '';
-        let token = localStorage.getItem('token');
+    const selectConversation = (index, type) => {
+      state.selectedConversationIndex = index;
+      state.selectedConversationType = type;
+      state.isGlobal = false;
+
+      const selected = state.selectedConversationType === 'personal' ? state.personalConversations : state.groupConversations;
+      state.selectedConversation = {
+        ...selected[state.selectedConversationIndex],
+        messages: []
+      };
+
+      loadConversationMessages(state.selectedConversation.id);
+    };
+
+    const selectCommission = (commissionId, index) => {
+      state.selectedConversationIndex = index;
+      state.selectedConversationType = 'commission';
+      state.isGlobal = false;
+
+      state.selectedConversation = {
+        ...state.commissions[index],
+        messages: []
+      };
+
+      console.log('Selected Commission:', state.selectedConversation);
+      loadConversationMessages(commissionId);
+    };
+
+    const selectGlobalFeed = () => {
+      state.isGlobal = true;
+      state.selectedConversationIndex = -1;
+      state.selectedConversationType = '';
+      loadGlobalMessages();
+    };
+
+    const sendMessage = async () => {
+      if (state.newMessage.trim() !== '') {
+        const postData = {
+          content: state.newMessage,
+          sender: localStorage.getItem('userId'),
+          isGlobal: state.isGlobal
+        };
+
+        if (!state.isGlobal) {
+          postData["commissionId"] = state.selectedConversation.id;
+        }
+
+        const endpoint = 'http://127.0.0.1:8000/api/message';
+        const token = localStorage.getItem('token');
 
         try {
-          const response = await axios.post('http://127.0.0.1:8000/api/message', postData, {
-            headers: { 'Authorization': `Bearer ${token}` }
+          const response = await axios.post(endpoint, postData, {
+            headers: { Authorization: `Bearer ${token}` }
           });
+
           console.log('Message envoyé', response.data);
+          state.newMessage = '';
+
+          if (state.isGlobal) {
+            loadGlobalMessages();
+          } else {
+            loadConversationMessages(state.selectedConversation.id);
+          }
         } catch (error) {
-          console.error('Erreur lors de la connexion:', error);
+          console.error('Erreur lors de l\'envoi du message:', error);
         }
       }
-    },
-    toggleSidebar() {
-      this.isSidebarOpen = !this.isSidebarOpen;
-    },
-    async getConversations() {
-      let token = localStorage.getItem('token');
-      let userId = localStorage.getItem('userId');
+    };
+
+    const getReceivedNotifications = async () => {
+      const token = localStorage.getItem('token');
+
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/api/notifications', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        state.receivedNotifications = response.data;
+      } catch (error) {
+        console.error('Erreur lors de la récupération des notifications:', error);
+      }
+    };
+
+    const getConversations = async () => {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
 
       try {
         const response = await axios.get(`http://127.0.0.1:8000/api/conversations/${userId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         });
 
-        this.personalConversations = response.data.personal;
-        this.groupConversations = response.data.group;
+        state.personalConversations = response.data.personal;
+        state.groupConversations = response.data.group;
 
-        if (this.personalConversations.length > 0) {
-          this.selectConversation(0, 'personal');
-        } else if (this.groupConversations.length > 0) {
-          this.selectConversation(0, 'group');
+        if (state.personalConversations.length > 0) {
+          selectConversation(0, 'personal');
+        } else if (state.groupConversations.length > 0) {
+          selectConversation(0, 'group');
         }
       } catch (error) {
         console.error('Erreur lors de la récupération des conversations:', error);
       }
-    },
-    async getUsers() {
-      let token = localStorage.getItem('token');
+    };
+
+    const getUsers = async () => {
+      const token = localStorage.getItem('token');
 
       try {
         const response = await axios.get('http://127.0.0.1:8000/api/users', {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         });
 
-        this.users = response.data;
+        state.users = response.data;
       } catch (error) {
         console.error('Erreur lors de la récupération des utilisateurs:', error);
       }
-    },
-    async createConversation() {
-      let token = localStorage.getItem('token');
-      let senderId = localStorage.getItem('userId');
+    };
+
+    const getCommissions = async () => {
+      const token = localStorage.getItem('token');
+
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/api/commissions', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        state.commissions = response.data;
+      } catch (error) {
+        console.error('Erreur lors de la récupération des commissions:', error);
+      }
+    };
+
+    const createConversation = async () => {
+      const token = localStorage.getItem('token');
+      const senderId = localStorage.getItem('userId');
 
       const postData = {
-        content: this.newConversationMessage,
+        content: state.newConversationMessage,
         sender: senderId,
-        receiver: this.newConversationUser
+        receiver: state.newConversationUser
       };
 
       try {
         const response = await axios.post('http://127.0.0.1:8000/api/conversation', postData, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         });
 
         console.log('Conversation créée', response.data);
-        this.newConversationUser = '';
-        this.newConversationMessage = '';
-        this.showCreateConversationModal = false;
-        this.getConversations(); // Refresh the conversation list
+        state.newConversationUser = '';
+        state.newConversationMessage = '';
+        state.showCreateConversationModal = false;
+        getConversations(); // Refresh the conversation list
       } catch (error) {
         console.error('Erreur lors de la création de la conversation:', error);
       }
-    },
-    async createGroupConversation() {
-      let token = localStorage.getItem('token');
-      let senderId = localStorage.getItem('userId');
+    };
+
+    const createGroupConversation = async () => {
+      const token = localStorage.getItem('token');
+      const senderId = localStorage.getItem('userId');
 
       const postData = {
-        name: this.newGroupName,
-        users: this.newGroupUsers, // List of user IDs
-        content: this.newGroupMessage,
+        name: state.newGroupName,
+        users: state.newGroupUsers, // List of user IDs
+        content: state.newGroupMessage,
         sender: senderId
       };
 
       try {
         const response = await axios.post('http://127.0.0.1:8000/api/group-conversation', postData, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         });
 
         console.log('Groupe créé', response.data);
-        this.newGroupName = '';
-        this.newGroupUsers = [];
-        this.newGroupMessage = '';
-        this.showCreateGroupModal = false;
-        this.getConversations(); // Refresh the conversation list
+        state.newGroupName = '';
+        state.newGroupUsers = [];
+        state.newGroupMessage = '';
+        state.showCreateGroupModal = false;
+        getConversations(); // Refresh the conversation list
       } catch (error) {
         console.error('Erreur lors de la création du groupe:', error);
       }
-    }
+    };
+
+    const createCommission = async () => {
+      const token = localStorage.getItem('token');
+
+      const postData = {
+        name: state.newCommissionName
+      };
+
+      try {
+        const response = await axios.post('http://127.0.0.1:8000/api/commissions', postData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        console.log('Commission créée', response.data);
+        state.newCommissionName = '';
+        state.showCreateCommissionModal = false;
+        getCommissions(); // Refresh the commission list
+      } catch (error) {
+        console.error('Erreur lors de la création de la commission:', error);
+      }
+    };
+
+    return {
+      ...toRefs(state),
+      selectConversation,
+      selectCommission,
+      selectGlobalFeed,
+      sendMessage,
+      getConversations,
+      getUsers,
+      getCommissions,
+      createConversation,
+      createGroupConversation,
+      createCommission,
+      getReceivedNotifications
+    };
   },
   mounted() {
     this.getConversations();
-    this.getUsers(); // Fetch users when component mounts
+    this.getUsers();
+    this.getCommissions();
+    this.getReceivedNotifications();
   }
-}
+};
 </script>
 
 <style scoped>
-/* Ajoutez ici des styles spécifiques à ce composant si nécessaire */
+/* Complétez si nécessaire */
 </style>

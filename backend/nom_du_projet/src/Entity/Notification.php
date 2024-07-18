@@ -23,7 +23,7 @@ class Notification
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'notifications')]
     private Collection $users;
 
-    #[ORM\ManyToOne(targetEntity: Message::class, inversedBy: 'notifications')]
+    #[ORM\ManyToOne(targetEntity: Message::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Message $message = null;
 
