@@ -1,116 +1,90 @@
 ```mermaid
 erDiagram
-    USER {
-        id int [PK]
-        username varchar
-        phonenumber varchar
-        roles json
-        password varchar
-        email varchar
-        created_at timestamp
+    users {
+        id INT
+        username VARCHAR
+        role VARCHAR
+        created_at TIMESTAMP
+    }
+    follows {
+        following_user_id INT
+        followed_user_id INT
+        created_at TIMESTAMP
+    }
+    posts {
+        id INT
+        title VARCHAR
+        body TEXT
+        user_id INT
+        status VARCHAR
+        created_at TIMESTAMP
+    }
+    commission {
+        id INT
+        name VARCHAR
+    }
+    conversation {
+        id INT
+        user_id INT
+        message_id INT
+    }
+    group_conversation {
+        id INT
+        name VARCHAR
+    }
+    group_conversation_users {
+        user_id INT
+        group_conversation_id INT
+    }
+    message {
+        id INT
+        sender_id INT
+        commission_id INT
+        content LONGTEXT
+        is_global TINYINT
+    }
+    messenger_messages {
+        id BIGINT
+        body LONGTEXT
+        headers LONGTEXT
+        queue_name VARCHAR
+        created_at DATETIME
+        available_at DATETIME
+        delivered_at DATETIME
+    }
+    notification {
+        id INT
+        message_id INT
+        message_content LONGTEXT
+        created_at DATETIME
+    }
+    notification_user {
+        notification_id INT
+        user_id INT
+    }
+    post {
+        id INT
+        author_id INT
+        commission_id INT
+        content LONGTEXT
+        created_at DATETIME
+    }
+    user_commission {
+        user_id INT
+        commission_id INT
     }
 
-    POST {
-        id int [PK]
-        title varchar
-        body text
-        user_id int [FK]
-        status varchar
-        created_at timestamp
-    }
+    users ||--|| follows : follows
+    users ||--|| posts : author
+    users ||--|{ conversation : initiates
+    users ||--o{ group_conversation_users : member
+    users ||--|| notification_user : receive_notification
+    users ||--o{ post : creates
 
-    FOLLOW {
-        following_user_id int [FK]
-        followed_user_id int [FK]
-        created_at timestamp 
-    }
-
-    COMMISSION {
-        id int [PK]
-        name varchar
-    }
-
-    CONVERSATION {
-        id int [PK]
-        user_id int [FK]
-        message_id int [FK]
-    }
-
-    MIGRATION_VERSION {
-        version varchar(191) [PK]
-        executed_at datetime
-        execution_time int
-    }
-
-    GROUP_CONVERSATION {
-        id int [PK]
-        name varchar
-    }
-
-    GROUP_CONVERSATION_USER {
-        user_id int [FK]
-        group_conversation_id int [FK]
-    }
-
-    MESSAGE {
-        id int [PK]
-        sender_id int [FK]
-        commission_id int [FK]
-        content longtext
-        is_global tinyint
-    }
-
-    MESSENGER_MESSAGE {
-        id bigint [PK]
-        body longtext
-        headers longtext
-        queue_name varchar(190)
-        created_at datetime
-        available_at datetime
-        delivered_at datetime
-    }
-
-    NOTIFICATION {
-        id int [PK]
-        message_id int [FK]
-        message_content longtext
-        created_at datetime
-    }
-
-    NOTIFICATION_USER {
-        notification_id int [FK]
-        user_id int [FK]
-    }
-
-    // Relationships
-    USER ||--o{ POST : "author_id"
-    USER ||--o{ FOLLOW : "following_user_id, followed_user_id"
-    USER ||--o{ CONVERSATION : "user_id"
-    USER ||--o{ GROUP_CONVERSATION_USER : "user_id"
-    USER ||--o{ MESSAGE : "sender_id"
-    USER ||--o{ NOTIFICATION_USER : "user_id"
-    USER ||--o{ POST : "author_id"
-
-    POST ||--o{ POST : "commission_id"
-
-    COMMISSION ||--o{ MESSAGE : "commission_id"
-    COMMISSION ||--o{ POST : "commission_id"
-
-    GROUP_CONVERSATION ||--o{ GROUP_CONVERSATION_USER : "id"
-
-    MESSAGE ||--o{ NOTIFICATION : "message_id"
-
-    NOTIFICATION ||--o{ NOTIFICATION_USER : "notification_id"
-
-    // Foreign Keys
-    FK_B6BD307F202D1EB2 --> MESSAGE : "commission_id"
-    FK_B6BD307FF624B39D --> MESSAGE : "sender_id"
-    FK_8A8E26E9537A1329 --> CONVERSATION : "message_id"
-    FK_8A8E26E9A76ED395 --> CONVERSATION : "user_id"
-    FK_2FE4BE6DA76ED395 --> GROUP_CONVERSATION_USER : "user_id"
-    FK_2FE4BE6DB73F9E4F --> GROUP_CONVERSATION_USER : "group_conversation_id"
-    FK_BF5476CA537A1329 --> NOTIFICATION : "message_id"
-    FK_35AF9D73A76ED395 --> NOTIFICATION_USER : "user_id"
-    FK_35AF9D73EF1A9D84 --> NOTIFICATION_USER : "notification_id"
-    FK_5A8A6C8D202D1EB2 --> POST : "commission_id"
-    FK_5A8A6C8DF675F31B --> POST : "author_id"
+    conversation ||--|| message : contains
+    group_conversation ||--|| group_conversation_users : contains
+    message ||--o commission : for_commission
+    messenger_messages ||--|| message : message
+    notification ||--|| notification_user : send_to
+    post ||--o commission : in_commission
+    user_commission ||--o commission : member
