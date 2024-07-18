@@ -1,4 +1,4 @@
-'''mermaid
+```mermaid
 erDiagram
     USER {
         id int [PK]
