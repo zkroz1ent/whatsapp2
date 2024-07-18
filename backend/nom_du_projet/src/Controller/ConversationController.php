@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ConversationController extends AbstractController
 {
@@ -88,21 +89,73 @@ class ConversationController extends AbstractController
     /**
      * @Route("/api/conversations", name="list_conversations", methods={"GET"})
      */
-    public function listConversations(): JsonResponse
+    public function listConversations(int $id): JsonResponse
     {
-        // Fetch all conversations
-        $conversations = $this->entityManager->getRepository(Conversation::class)->findAll();
+        try {
+            // Fetch the user by the given ID
+            $user = $this->entityManager->getRepository(User::class)->find($id);
+            if (!$user) {
+                throw new NotFoundHttpException('User not found');
+            }
 
-        $response = [];
-        foreach ($conversations as $conversation) {
-            $response[] = [
-                'id' => $conversation->getId(),
-                'user' => $conversation->getUser()->getUsername(),
-                'message' => $conversation->getMessage()->getContent()
-            ];
+            // Get personal conversations
+            $personalConversations = $this->entityManager->getRepository(Conversation::class)
+                ->findBy(['user' => $user]);
+
+            $personalConversationData = [];
+            foreach ($personalConversations as $personalConversation) {
+                $personalConversationData[] = [
+                    'id' => $personalConversation->getId(),
+                    'lastMessage' => $personalConversation->getMessage()->getContent(),
+                    'name' => $personalConversation->getUser()->getUsername(), // Adjust based on your needs
+                    'messages' => [
+                        [
+                            'text' => $personalConversation->getMessage()->getContent(),
+                            'isMine' => $personalConversation->getMessage()->getSender() === $user
+                        ]
+                    ]
+                ];
+            }
+
+            // Get group conversations
+            $groupConversations = $this->entityManager->getRepository(GroupConversation::class)->findAll();
+
+            $groupConversationData = [];
+            foreach ($groupConversations as $groupConversation) {
+                $messages = [];
+                foreach ($groupConversation->getMessages() as $message) {
+                    $messages[] = [
+                        'text' => $message->getContent(),
+                        'isMine' => $message->getSender() === $user
+                    ];
+                }
+
+                $groupConversationData[] = [
+                    'id' => $groupConversation->getId(),
+                    'name' => $groupConversation->getName(),
+                    'lastMessage' => $groupConversation->getMessages()->last() ? $groupConversation->getMessages()->last()->getContent() : '',
+                    'messages' => $messages
+                ];
+            }
+
+            return new JsonResponse([
+                'personal' => $personalConversationData,
+                'group' => $groupConversationData
+            ], JsonResponse::HTTP_OK);
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse([
+                'error' => $e->getMessage()
+            ], JsonResponse::HTTP_NOT_FOUND);
+        } catch (\Exception $e) {
+            // Log the error
+            $this->logger->error('Error while listing conversations: ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
+
+            return new JsonResponse([
+                'error' => 'An error occurred while listing conversations'
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        return new JsonResponse($response, JsonResponse::HTTP_OK);
     }
 
     /**
