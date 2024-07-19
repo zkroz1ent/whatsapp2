@@ -71,7 +71,7 @@ get_commission_messages:
     methods: [GET]
 
 get_notifications:
-    path: /api/notifications
+    path: /api/notifications/{userId}
     controller: App\Controller\NotificationController::getNotifications
     methods: [GET]
 

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -24,10 +23,14 @@ class Commission
     #[ORM\OneToMany(targetEntity: Post::class, mappedBy: 'commission')]
     private Collection $posts;
 
+    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'commission')]
+    private Collection $messages;
+
     public function __construct()
     {
         $this->users = new ArrayCollection();
         $this->posts = new ArrayCollection();
+        $this->messages = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -55,13 +58,16 @@ class Commission
     {
         if (!$this->users->contains($user)) {
             $this->users[] = $user;
+            $user->addCommission($this); // Maintenir la relation inverse
         }
         return $this;
     }
 
     public function removeUser(User $user): self
     {
-        $this->users->removeElement($user);
+        if ($this->users->removeElement($user)) {
+            $user->removeCommission($this); // Maintenir la relation inverse
+        }
         return $this;
     }
 
@@ -84,6 +90,30 @@ class Commission
         if ($this->posts->removeElement($post)) {
             if ($post->getCommission() === $this) {
                 $post->setCommission(null);
+            }
+        }
+        return $this;
+    }
+
+    public function getMessages(): Collection
+    {
+        return $this->messages;
+    }
+
+    public function addMessage(Message $message): self
+    {
+        if (!$this->messages->contains($message)) {
+            $this->messages[] = $message;
+            $message->setCommission($this);
+        }
+        return $this;
+    }
+
+    public function removeMessage(Message $message): self
+    {
+        if ($this->messages->removeElement($message)) {
+            if ($message->getCommission() === $this) {
+                $message->setCommission(null);
             }
         }
         return $this;

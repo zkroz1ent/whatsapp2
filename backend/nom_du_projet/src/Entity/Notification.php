@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -7,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity]
+#[ORM\Table(name: 'notification')]
 class Notification
 {
     #[ORM\Id]
@@ -19,12 +21,13 @@ class Notification
 
     #[ORM\Column(type: 'datetime')]
     private \DateTimeInterface $createdAt;
-
+ 
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'notifications')]
+    #[ORM\JoinTable(name: 'user_notifications')]
     private Collection $users;
 
     #[ORM\ManyToOne(targetEntity: Message::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)] // Permet à `message` d'être nul
     private ?Message $message = null;
 
     public function __construct()

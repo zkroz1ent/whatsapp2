@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -55,7 +54,7 @@ class GroupConversation
     {
         if (!$this->users->contains($user)) {
             $this->users[] = $user;
-            $user->addGroup($this);
+            $user->addGroup($this); // Maintenir la relation inverse
         }
         return $this;
     }
@@ -63,7 +62,7 @@ class GroupConversation
     public function removeUser(User $user): self
     {
         if ($this->users->removeElement($user)) {
-            $user->removeGroup($this);
+            $user->removeGroup($this); // Maintenir la relation inverse
         }
         return $this;
     }
@@ -77,7 +76,7 @@ class GroupConversation
     {
         if (!$this->messages->contains($message)) {
             $this->messages[] = $message;
-            $message->setGroup($this);
+            $message->setGroup($this); // Maintenir la relation inverse
         }
         return $this;
     }
@@ -86,7 +85,7 @@ class GroupConversation
     {
         if ($this->messages->removeElement($message)) {
             if ($message->getGroup() === $this) {
-                $message->setGroup(null);
+                $message->setGroup(null); // Maintenir la relation inverse
             }
         }
         return $this;

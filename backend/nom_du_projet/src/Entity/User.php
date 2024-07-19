@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -78,14 +77,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getphonenumber(): ?string
+    public function getPhoneNumber(): ?string
     {
         return $this->phonenumber;
     }
 
-    public function setphonenumber(string $phonenumber): self
+    public function setPhoneNumber(string $phonenumber): self
     {
-        echo"phonenumber";
         $this->phonenumber = $phonenumber;
         return $this;
     }
@@ -156,16 +154,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if (!$this->groups->contains($group)) {
             $this->groups[] = $group;
-            $group->addUser($this);
         }
         return $this;
     }
 
     public function removeGroup(GroupConversation $group): self
     {
-        if ($this->groups->removeElement($group)) {
-            $group->removeUser($this);
-        }
+        $this->groups->removeElement($group);
         return $this;
     }
 
@@ -231,9 +226,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function removeNotification(Notification $notification): self
     {
-        if ($this->notifications->removeElement($notification)) {
-            $notification->removeUser($this);
-        }
+        $this->notifications->removeElement($notification);
         return $this;
     }
 

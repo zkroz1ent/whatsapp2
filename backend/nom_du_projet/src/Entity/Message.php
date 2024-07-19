@@ -3,11 +3,8 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use App\Repository\MessageRepository;
 
-#[ORM\Entity(repositoryClass: MessageRepository::class)]
+#[ORM\Entity]
 class Message
 {
     #[ORM\Id]
@@ -18,15 +15,17 @@ class Message
     #[ORM\Column(type: 'text')]
     private ?string $content = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'messages')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $sender = null;
 
-    #[ORM\ManyToOne(targetEntity: Commission::class, inversedBy: 'messages')]
-    private ?Commission $commission = null;
+    #[ORM\ManyToOne(targetEntity: GroupConversation::class, inversedBy: 'messages')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?GroupConversation $group = null;
 
-    #[ORM\Column(type: 'boolean')]
-    private bool $isGlobal = false;
+    #[ORM\ManyToOne(targetEntity: Commission::class, inversedBy: 'messages')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Commission $commission = null;
 
     public function getId(): ?int
     {
@@ -55,6 +54,17 @@ class Message
         return $this;
     }
 
+    public function getGroup(): ?GroupConversation
+    {
+        return $this->group;
+    }
+
+    public function setGroup(?GroupConversation $group): self
+    {
+        $this->group = $group;
+        return $this;
+    }
+
     public function getCommission(): ?Commission
     {
         return $this->commission;
@@ -63,17 +73,6 @@ class Message
     public function setCommission(?Commission $commission): self
     {
         $this->commission = $commission;
-        return $this;
-    }
-
-    public function isGlobal(): bool
-    {
-        return $this->isGlobal;
-    }
-
-    public function setIsGlobal(bool $isGlobal): self
-    {
-        $this->isGlobal = $isGlobal;
         return $this;
     }
 }

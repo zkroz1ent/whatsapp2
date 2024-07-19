@@ -5,7 +5,6 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'conversation')]
 class Conversation
 {
     #[ORM\Id]
@@ -13,13 +12,12 @@ class Conversation
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false, name: 'user_id', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'conversations')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
-    #[ORM\ManyToOne(targetEntity: Message::class)]
-    #[ORM\JoinColumn(nullable: false, name: 'message_id', referencedColumnName: 'id')]
-    private ?Message $message = null;
+    #[ORM\Column(type: 'string', length: 255)]
+    private ?string $title = null;
 
     public function getId(): ?int
     {
@@ -37,14 +35,14 @@ class Conversation
         return $this;
     }
 
-    public function getMessage(): ?Message
+    public function getTitle(): ?string
     {
-        return $this->message;
+        return $this->title;
     }
 
-    public function setMessage(?Message $message): self
+    public function setTitle(string $title): self
     {
-        $this->message = $message;
+        $this->title = $title;
         return $this;
     }
 }
