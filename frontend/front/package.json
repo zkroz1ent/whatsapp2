@@ -11,6 +11,7 @@
     "@vueuse/core": "^10.10.0",
     "autoprefixer": "^10",
     "core-js": "^3.8.3",
+    "front": "file:",
     "postcss": "^8",
     "sweetalert2": "^11.11.1",
     "tailwindcss": "^3",

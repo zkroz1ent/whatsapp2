@@ -1,5 +1,11 @@
-# Ignore the var directory
+# Ignore le répertoire var
 /var/
 
-# Ignore the vendor directory
+# Ignore le répertoire vendor
 /vendor/
+
+/config/
+
+/public/
+backend/nom_du_projet/composer.lock
+./whatsapp2/backend/nom_du_projet/

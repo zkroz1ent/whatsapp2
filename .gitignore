@@ -1,1 +1,6 @@
 backend/nom_du_projet/composer.lock
+backend/nom_du_projet/public/bundles/apiplatform/react/react.production.min.js
+backend/nom_du_projet/public/
+backend/nom_du_projet/vendor/
+backend/nom_du_projet/public/bundles/apiplatform/graphql-playground/index.css
+backend/nom_du_projet/public/bundles/apiplatform/graphql-playground/index.css
