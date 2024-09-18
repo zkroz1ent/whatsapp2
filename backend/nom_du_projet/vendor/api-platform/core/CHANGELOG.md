@@ -1,5 +1,25 @@
 # Changelog
 
+## v3.2.26
+
+### Bug fixes
+
+* [6776231ed](https://github.com/api-platform/core/commit/6776231eddebb8dbb9efdc66dec29247172cf0ea) fix: remove useless deprecation (#6481)
+
+## v3.2.25
+
+### Bug fixes
+
+* [0ed1b637a](https://github.com/api-platform/core/commit/0ed1b637a84d0860c2e014e2473b52d17de9276b) fix(metadata): wrong schema generated if openapicontext set on array (#6431)
+
+## v3.2.24
+
+### Bug fixes
+
+* [451d50e53](https://github.com/api-platform/core/commit/451d50e538a4f7aac67d47601fee5474af99c870) fix(symfony): deprecations 7.1
+* [93e71eb82](https://github.com/api-platform/core/commit/93e71eb822aa06db2b6de303039f9b8c65cad7a8) fix(graphql): name converter with class (#6396)
+* [99314bf80](https://github.com/api-platform/core/commit/99314bf80e7c61147fb311da6403b37be5eab5b2) fix(state): handle empty request in read provider (#6403)
+
 ## v3.2.23
 
 ### Bug fixes
