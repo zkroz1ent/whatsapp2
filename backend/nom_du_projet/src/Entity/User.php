@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -25,6 +26,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'json')]
     private array $roles = [];
+
+    #[ORM\Column(type: 'json')]
+    private array $notificationSettings = [];
 
     #[ORM\Column(type: 'string')]
     private ?string $password = null;
@@ -81,7 +85,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->phonenumber;
     }
+    public function getNotificationSettings(): array
+    {
+        return $this->notificationSettings;
+    }
 
+    public function setNotificationSettings(array $notificationSettings): self
+    {
+        $this->notificationSettings = $notificationSettings;
+        return $this;
+    }
+
+    // Example methods for notification settings
+    public function wantsNotificationFor(Commission $commission): bool
+    {
+        return in_array($commission->getId(), $this->notificationSettings);
+    }
     public function setPhoneNumber(string $phonenumber): self
     {
         $this->phonenumber = $phonenumber;

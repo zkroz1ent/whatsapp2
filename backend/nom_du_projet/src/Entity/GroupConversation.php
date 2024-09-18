@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -22,7 +23,36 @@ class GroupConversation
 
     #[ORM\OneToMany(mappedBy: 'group', targetEntity: Message::class)]
     private Collection $messages;
+    #[ORM\Column(type: 'boolean')]
+    private bool $isTemporary = false;
 
+    // Getter and setter for isTemporary
+    public function isTemporary(): bool
+    {
+        return $this->isTemporary;
+    }
+
+    public function setTemporary(bool $isTemporary): self
+    {
+        $this->isTemporary = $isTemporary;
+        return $this;
+    }
+
+    // You could also add an endDate if you expect to have scheduled expiries
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $endDate = null;
+
+    // Getter and setter for endDate
+    public function getEndDate(): ?\DateTimeInterface
+    {
+        return $this->endDate;
+    }
+
+    public function setEndDate(?\DateTimeInterface $endDate): self
+    {
+        $this->endDate = $endDate;
+        return $this;
+    }
     public function __construct()
     {
         $this->users = new ArrayCollection();

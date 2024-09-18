@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -25,7 +26,20 @@ class Post
     #[ORM\ManyToOne(targetEntity: Commission::class, inversedBy: 'posts')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Commission $commission = null;
+    #[ORM\Column(type: 'boolean')]
+    private bool $isGlobal = false;
 
+    // Getter and setter for isGlobal
+    public function isGlobal(): bool
+    {
+        return $this->isGlobal;
+    }
+
+    public function setGlobal(bool $isGlobal): self
+    {
+        $this->isGlobal = $isGlobal;
+        return $this;
+    }
     public function __construct()
     {
         $this->createdAt = new \DateTime();

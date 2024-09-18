@@ -21,7 +21,8 @@ class Notification
 
     #[ORM\Column(type: 'datetime')]
     private \DateTimeInterface $createdAt;
- 
+    #[ORM\Column(type: 'string', length: 100)]
+    private ?string $type = null; // Type de notification (nouveau post, nouveau message, etc.)
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'notifications')]
     #[ORM\JoinTable(name: 'user_notifications')]
     private Collection $users;
@@ -35,7 +36,16 @@ class Notification
         $this->createdAt = new \DateTime();
         $this->users = new ArrayCollection();
     }
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
 
+    public function setType(string $type): self
+    {
+        $this->type = $type;
+        return $this;
+    }
     public function getId(): ?int
     {
         return $this->id;

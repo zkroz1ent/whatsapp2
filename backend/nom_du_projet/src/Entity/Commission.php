@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -25,7 +26,20 @@ class Commission
 
     #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'commission')]
     private Collection $messages;
+    #[ORM\Column(type: 'boolean')]
+    private bool $isActive = true;
 
+    // Getter and setter for isActive
+    public function isActive(): bool
+    {
+        return $this->isActive;
+    }
+
+    public function setActive(bool $isActive): self
+    {
+        $this->isActive = $isActive;
+        return $this;
+    }
     public function __construct()
     {
         $this->users = new ArrayCollection();

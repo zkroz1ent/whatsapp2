@@ -26,6 +26,8 @@ class Message
     #[ORM\ManyToOne(targetEntity: Commission::class, inversedBy: 'messages')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Commission $commission = null;
+    #[ORM\Column(type: 'boolean')]
+    private bool $isGlobal = false;
 
     public function getId(): ?int
     {
@@ -53,7 +55,16 @@ class Message
         $this->sender = $sender;
         return $this;
     }
+    public function isGlobal(): bool
+    {
+        return $this->isGlobal;
+    }
 
+    public function setGlobal(bool $isGlobal): self
+    {
+        $this->isGlobal = $isGlobal;
+        return $this;
+    }
     public function getGroup(): ?GroupConversation
     {
         return $this->group;

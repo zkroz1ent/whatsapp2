@@ -18,7 +18,20 @@ class Conversation
 
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $title = null;
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $lastMessageAt = null;
 
+    // Getter and setter for lastMessageAt
+    public function getLastMessageAt(): ?\DateTimeInterface
+    {
+        return $this->lastMessageAt;
+    }
+
+    public function setLastMessageAt(?\DateTimeInterface $lastMessageAt): self
+    {
+        $this->lastMessageAt = $lastMessageAt;
+        return $this;
+    }
     public function getId(): ?int
     {
         return $this->id;
