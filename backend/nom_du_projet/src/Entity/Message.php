@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -15,9 +14,13 @@ class Message
     #[ORM\Column(type: 'text')]
     private ?string $content = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'messages')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'messagesSent')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $sender = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'messagesReceived')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?User $receiver = null;
 
     #[ORM\ManyToOne(targetEntity: GroupConversation::class, inversedBy: 'messages')]
     #[ORM\JoinColumn(nullable: false)]
@@ -26,6 +29,10 @@ class Message
     #[ORM\ManyToOne(targetEntity: Commission::class, inversedBy: 'messages')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Commission $commission = null;
+
+    #[ORM\ManyToOne(targetEntity: Conversation::class, inversedBy: 'messages')]
+    private ?Conversation $conversation = null;
+
     #[ORM\Column(type: 'boolean')]
     private bool $isGlobal = false;
 
@@ -55,16 +62,29 @@ class Message
         $this->sender = $sender;
         return $this;
     }
+
+    public function getReceiver(): ?User
+    {
+        return $this->receiver;
+    }
+
+    public function setReceiver(?User $receiver): self
+    {
+        $this->receiver = $receiver;
+        return $this;
+    }
+
     public function isGlobal(): bool
     {
         return $this->isGlobal;
     }
 
-    public function setGlobal(bool $isGlobal): self
+    public function setIsGlobal(bool $isGlobal): self
     {
         $this->isGlobal = $isGlobal;
         return $this;
     }
+
     public function getGroup(): ?GroupConversation
     {
         return $this->group;
@@ -84,6 +104,17 @@ class Message
     public function setCommission(?Commission $commission): self
     {
         $this->commission = $commission;
+        return $this;
+    }
+
+    public function getConversation(): ?Conversation
+    {
+        return $this->conversation;
+    }
+
+    public function setConversation(?Conversation $conversation): self
+    {
+        $this->conversation = $conversation;
         return $this;
     }
 }

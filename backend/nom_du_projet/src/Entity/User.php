@@ -63,6 +63,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->posts = new ArrayCollection();
         $this->notifications = new ArrayCollection();
         $this->conversations = new ArrayCollection();
+        $this->notificationSettings = []; // Initialisation ici
     }
 
     public function getId(): ?int
@@ -92,7 +93,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setNotificationSettings(array $notificationSettings): self
     {
-        $this->notificationSettings = $notificationSettings;
+        $this->notificationSettings = $notificationSettings ?? [];
         return $this;
     }
 

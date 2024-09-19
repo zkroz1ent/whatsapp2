@@ -15,6 +15,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ConversationController extends AbstractController
+
 {
     private $entityManager;
     private $logger;
@@ -28,133 +29,77 @@ class ConversationController extends AbstractController
     /**
      * @Route("/api/conversation", name="create_conversation", methods={"POST"})
      */
-    public function createConversation(Request $request): JsonResponse
-    {
-        // Décodage du contenu JSON de la requête
-        $data = json_decode($request->getContent(), true);
+// Dans votre méthode de création de conversation
+public function createConversation(Request $request): JsonResponse
+{
+    $data = json_decode($request->getContent(), true);
 
-        // Vérification des champs essentiels
-        if (!isset($data['content']) || !isset($data['sender']) || !isset($data['receiver'])) {
-            $this->logger->error('Invalid input: Missing content, sender, or receiver');
-            return new JsonResponse(['message' => 'Invalid input'], JsonResponse::HTTP_BAD_REQUEST);
-        }
-
-        $content = $data['content'];
-        $senderId = $data['sender'];
-        $receiverId = $data['receiver'];
-
-        $this->logger->info('Received request to create conversation', [
-            'senderId' => $senderId,
-            'receiverId' => $receiverId,
-            'content' => $content
-        ]);
-
-        try {
-            // Récupérer les utilisateurs par ID
-            $sender = $this->entityManager->getRepository(User::class)->find($senderId);
-            $receiver = $this->entityManager->getRepository(User::class)->find($receiverId);
-
-            // Vérifier si les utilisateurs existent
-            if ($sender === null || $receiver === null) {
-                $this->logger->error('Sender or receiver not found', [
-                    'senderId' => $senderId,
-                    'receiverId' => $receiverId
-                ]);
-                return new JsonResponse(['message' => 'Sender or receiver not found'], JsonResponse::HTTP_BAD_REQUEST);
-            }
-
-            // Créer un nouveau message
-            $message = new Message();
-            $message->setContent($content);
-            $message->setSender($sender);
-            $message->setReceiver($receiver);
-
-            // Persister le message en base de données
-            $this->entityManager->persist($message);
-            $this->entityManager->flush();
-
-            $this->logger->info('Conversation created successfully', ['messageId' => $message->getId()]);
-
-            return new JsonResponse(['message' => 'Conversation created successfully'], JsonResponse::HTTP_CREATED);
-        } catch (\Exception $e) {
-            // Gestion des erreurs
-            $this->logger->error('Error while creating conversation', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return new JsonResponse(['message' => 'An error occurred while creating the conversation'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
-        }
+    if (!isset($data['content'], $data['sender'], $data['receiver'])) {
+        return new JsonResponse(['message' => 'Invalid input'], JsonResponse::HTTP_BAD_REQUEST);
     }
 
+    $sender = $this->entityManager->getRepository(User::class)->find($data['sender']);
+    $receiver = $this->entityManager->getRepository(User::class)->find($data['receiver']);
+
+    if (!$sender || !$receiver) {
+        return new JsonResponse(['message' => 'Sender or receiver not found'], JsonResponse::HTTP_BAD_REQUEST);
+    }
+
+    // Rechercher une conversation existante entre les deux utilisateurs
+    $conversation = $this->entityManager->getRepository(Conversation::class)->findOneBy([
+        'user' => $sender,  // Cela suppose que `user` désigne l'un ou l'autre participant
+    ]);
+
+    // Si aucune conversation n'existe, en créer une nouvelle
+    if (!$conversation) {
+        $conversation = new Conversation();
+        $conversation->setUser($sender); // Set l'utilisateur principal de la conversation
+        $conversation->setTitle('Conversation between ' . $sender->getUsername() . ' and ' . $receiver->getUsername());
+
+        $this->entityManager->persist($conversation); // Enregistrer la nouvelle conversation
+    }
+
+    // Créer un nouveau message
+    $message = new Message();
+    $message->setContent($data['content']);
+    $message->setSender($sender);
+    $message->setReceiver($receiver);
+    $message->setConversation($conversation); // Assigner le message à la conversation
+
+    $this->entityManager->persist($message);
+    $this->entityManager->flush();
+
+    return new JsonResponse(['message' => 'Conversation created successfully'], JsonResponse::HTTP_CREATED);
+}
+
     /**
-     * @Route("/api/conversations", name="list_conversations", methods={"GET"})
+     * @Route("/api/conversations/{id}", name="list_conversations", methods={"GET"})
      */
     public function listConversations(int $id): JsonResponse
     {
         try {
-            // Fetch the user by the given ID
-            $user = $this->entityManager->getRepository(User::class)->find($id);
+            $user = $this->fetchUser($id);
             if (!$user) {
                 throw new NotFoundHttpException('User not found');
             }
 
-            // Get personal conversations
             $personalConversations = $this->entityManager->getRepository(Conversation::class)
                 ->findBy(['user' => $user]);
 
-            $personalConversationData = [];
-            foreach ($personalConversations as $personalConversation) {
-                $personalConversationData[] = [
-                    'id' => $personalConversation->getId(),
-                    'lastMessage' => $personalConversation->getMessage()->getContent(),
-                    'name' => $personalConversation->getUser()->getUsername(), // Adjust based on your needs
-                    'messages' => [
-                        [
-                            'text' => $personalConversation->getMessage()->getContent(),
-                            'isMine' => $personalConversation->getMessage()->getSender() === $user
-                        ]
-                    ]
-                ];
-            }
+            $personalConversationData = array_map(fn($conversation) => $this->formatPersonalConversation($conversation, $user), $personalConversations);
 
-            // Get group conversations
             $groupConversations = $this->entityManager->getRepository(GroupConversation::class)->findAll();
-
-            $groupConversationData = [];
-            foreach ($groupConversations as $groupConversation) {
-                $messages = [];
-                foreach ($groupConversation->getMessages() as $message) {
-                    $messages[] = [
-                        'text' => $message->getContent(),
-                        'isMine' => $message->getSender() === $user
-                    ];
-                }
-
-                $groupConversationData[] = [
-                    'id' => $groupConversation->getId(),
-                    'name' => $groupConversation->getName(),
-                    'lastMessage' => $groupConversation->getMessages()->last() ? $groupConversation->getMessages()->last()->getContent() : '',
-                    'messages' => $messages
-                ];
-            }
+            $groupConversationData = array_map(fn($group) => $this->formatGroupConversation($group, $user), $groupConversations);
 
             return new JsonResponse([
                 'personal' => $personalConversationData,
                 'group' => $groupConversationData
             ], JsonResponse::HTTP_OK);
         } catch (NotFoundHttpException $e) {
-            return new JsonResponse([
-                'error' => $e->getMessage()
-            ], JsonResponse::HTTP_NOT_FOUND);
+            return new JsonResponse(['error' => $e->getMessage()], JsonResponse::HTTP_NOT_FOUND);
         } catch (\Exception $e) {
-            // Log the error
-            $this->logger->error('Error while listing conversations: ' . $e->getMessage(), [
-                'exception' => $e
-            ]);
-
-            return new JsonResponse([
-                'error' => 'An error occurred while listing conversations'
-            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+            $this->logger->error('Error while listing conversations: ' . $e->getMessage(), ['exception' => $e]);
+            return new JsonResponse(['error' => 'An error occurred while listing conversations'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -165,45 +110,38 @@ class ConversationController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
-        if (!isset($data['name']) || !isset($data['users']) || !isset($data['content']) || !isset($data['sender'])) {
+        if (!$this->isValidGroupConversationData($data)) {
             $this->logger->error('Invalid input: Missing name, users, content, or sender');
             return new JsonResponse(['message' => 'Invalid input'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $name = $data['name'];
-        $userIds = $data['users'];
-        $content = $data['content'];
-        $senderId = $data['sender'];
-
         try {
-            // Récupérer tous les utilisateurs par leurs IDs
-            $users = $this->entityManager->getRepository(User::class)->findBy(['id' => $userIds]);
-            if (count($users) !== count($userIds)) {
+            $sender = $this->fetchUser($data['sender']);
+            if (!$sender) {
+                $this->logger->error('Sender not found. ID: ' . $data['sender']);
+                return new JsonResponse(['message' => 'Sender not found'], JsonResponse::HTTP_BAD_REQUEST);
+            }
+
+            $users = $this->fetchUsers($data['users']);
+            if (count($users) !== count($data['users'])) {
                 $this->logger->error('One or more users not found');
                 return new JsonResponse(['message' => 'One or more users not found'], JsonResponse::HTTP_BAD_REQUEST);
             }
 
-            // Récupérer l'utilisateur expéditeur par ID
-            $sender = $this->entityManager->getRepository(User::class)->find($senderId);
-            if ($sender === null) {
-                $this->logger->error('Sender not found. ID: ' . $senderId);
-                return new JsonResponse(['message' => 'Sender not found'], JsonResponse::HTTP_BAD_REQUEST);
-            }
-
-            // Créer et persister la conversation de groupe
             $groupConversation = new GroupConversation();
-            $groupConversation->setName($name);
+            $groupConversation->setName($data['name']);
             foreach ($users as $user) {
                 $groupConversation->addUser($user);
             }
+
             $this->entityManager->persist($groupConversation);
             $this->entityManager->flush();
 
-            // Créer et persister le message
             $message = new Message();
-            $message->setContent($content);
+            $message->setContent($data['content']);
             $message->setSender($sender);
             $message->setGroup($groupConversation);
+
             $this->entityManager->persist($message);
             $this->entityManager->flush();
 
@@ -212,5 +150,63 @@ class ConversationController extends AbstractController
             $this->logger->error('Error while creating group conversation: ' . $e->getMessage());
             return new JsonResponse(['message' => 'An error occurred while creating the group conversation'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private function isValidConversationData(array $data): bool
+    {
+        return isset($data['content'], $data['sender'], $data['receiver']);
+    }
+
+    private function isValidGroupConversationData(array $data): bool
+    {
+        return isset($data['name'], $data['users'], $data['content'], $data['sender']);
+    }
+
+    private function fetchUser(int $userId): ?User
+    {
+        return $this->entityManager->getRepository(User::class)->find($userId);
+    }
+
+    private function fetchUsers(array $userIds): array
+    {
+        return $this->entityManager->getRepository(User::class)->findBy(['id' => $userIds]);
+    }
+
+    private function formatPersonalConversation(Conversation $conversation, User $user): array
+    {
+        $lastMessage = $conversation->getLastMessage();
+        $lastMessageContent = $lastMessage ? $lastMessage->getContent() : '';
+
+        $messages = $conversation->getMessages()->map(function ($message) use ($user) {
+            return [
+                'text' => $message->getContent(),
+                'isMine' => $message->getSender() === $user
+            ];
+        })->toArray();
+
+        return [
+            'id' => $conversation->getId(),
+            'lastMessage' => $lastMessageContent,
+            'name' => $conversation->getUser()->getUsername(),
+            'messages' => $messages
+        ];
+    }
+
+    private function formatGroupConversation(GroupConversation $groupConversation, User $user): array
+    {
+        $messages = [];
+        foreach ($groupConversation->getMessages() as $message) {
+            $messages[] = [
+                'text' => $message->getContent(),
+                'isMine' => $message->getSender() === $user
+            ];
+        }
+
+        return [
+            'id' => $groupConversation->getId(),
+            'name' => $groupConversation->getName(),
+            'lastMessage' => $groupConversation->getMessages()->last() ? $groupConversation->getMessages()->last()->getContent() : '',
+            'messages' => $messages
+        ];
     }
 }

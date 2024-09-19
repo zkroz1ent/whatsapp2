@@ -1,8 +1,9 @@
 <?php
-
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity]
 class Conversation
@@ -18,20 +19,15 @@ class Conversation
 
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $title = null;
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $lastMessageAt = null;
 
-    // Getter and setter for lastMessageAt
-    public function getLastMessageAt(): ?\DateTimeInterface
+    #[ORM\OneToMany(mappedBy: 'conversation', targetEntity: Message::class, cascade: ['persist', 'remove'])]
+    private Collection $messages;
+
+    public function __construct()
     {
-        return $this->lastMessageAt;
+        $this->messages = new ArrayCollection();
     }
 
-    public function setLastMessageAt(?\DateTimeInterface $lastMessageAt): self
-    {
-        $this->lastMessageAt = $lastMessageAt;
-        return $this;
-    }
     public function getId(): ?int
     {
         return $this->id;
@@ -56,6 +52,37 @@ class Conversation
     public function setTitle(string $title): self
     {
         $this->title = $title;
+        return $this;
+    }
+
+    public function getLastMessage(): ?Message
+    {
+        return $this->messages->isEmpty() ? null : $this->messages->last();
+    }
+
+    public function getMessages(): Collection
+    {
+        return $this->messages;
+    }
+
+    public function addMessage(Message $message): self
+    {
+        if (!$this->messages->contains($message)) {
+            $this->messages[] = $message;
+            $message->setConversation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMessage(Message $message): self
+    {
+        if ($this->messages->removeElement($message)) {
+            if ($message->getConversation() === $this) {
+                $message->setConversation(null);
+            }
+        }
+
         return $this;
     }
 }

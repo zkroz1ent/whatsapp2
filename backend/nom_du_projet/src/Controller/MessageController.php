@@ -7,18 +7,22 @@ use App\Entity\Commission;
 use App\Entity\Notification;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Psr\Log\LoggerInterface; // Ajout du service de logging
 
 class MessageController extends AbstractController
 {
     private $entityManager;
+    private $logger;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger)
     {
         $this->entityManager = $entityManager;
+        $this->logger = $logger;
     }
 
     /**
@@ -29,28 +33,22 @@ class MessageController extends AbstractController
         try {
             $data = json_decode($request->getContent(), true);
 
-            if (!isset($data['content']) || !isset($data['sender'])) {
-                return new JsonResponse(['error' => 'Invalid input'], JsonResponse::HTTP_BAD_REQUEST);
+            if (!$data || !isset($data['content'], $data['sender'])) {
+                return new JsonResponse(['error' => 'Invalid input data'], JsonResponse::HTTP_BAD_REQUEST);
             }
 
-            $content = $data['content'];
-            $senderId = $data['sender'];
-            $commissionId = $data['commissionId'] ?? null;
-            $isGlobal = $data['isGlobal'] ?? false;
-
-            $sender = $this->entityManager->getRepository(User::class)->find($senderId);
-
+            $sender = $this->entityManager->getRepository(User::class)->find($data['sender']);
             if (!$sender) {
                 return new JsonResponse(['error' => 'Sender not found'], JsonResponse::HTTP_BAD_REQUEST);
             }
 
             $message = new Message();
-            $message->setContent($content);
+            $message->setContent($data['content']);
             $message->setSender($sender);
-            $message->setIsGlobal($isGlobal);
+            $message->setIsGlobal($data['isGlobal'] ?? false);
 
-            if ($commissionId) {
-                $commission = $this->entityManager->getRepository(Commission::class)->find($commissionId);
+            if (isset($data['commissionId'])) {
+                $commission = $this->entityManager->getRepository(Commission::class)->find($data['commissionId']);
                 if ($commission) {
                     $message->setCommission($commission);
                 } else {
@@ -61,28 +59,23 @@ class MessageController extends AbstractController
             $this->entityManager->persist($message);
             $this->entityManager->flush();
 
-            // Créer des notifications pour les utilisateurs concernés
-            $this->createNotifications($message, $isGlobal, $commission);
+            $this->createNotifications($message, $data['isGlobal'] ?? false, $message->getCommission());
 
             return new JsonResponse(['message' => 'Message sent successfully'], JsonResponse::HTTP_CREATED);
+        } catch (NoResultException $e) {
+            $this->logger->error('No result found: ' . $e->getMessage());
+            return new JsonResponse(['error' => 'No result found'], JsonResponse::HTTP_NOT_FOUND);
         } catch (\Exception $e) {
+            $this->logger->error('Error sending message: ' . $e->getMessage());
             return new JsonResponse(['error' => 'An error occurred while sending the message'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
-    /**
-     * Crée des notifications pour les utilisateurs en fonction des préférences de notifications.
-     */
     private function createNotifications(Message $message, bool $isGlobal, ?Commission $commission = null): void
     {
-        $users = [];
-        if ($isGlobal) {
-            // Récupérer tous les utilisateurs
-            $users = $this->entityManager->getRepository(User::class)->findAll();
-        } elseif ($commission) {
-            // Récupérer les utilisateurs abonnés à la commission
-            $users = $commission->getUsers();
-        }
+        $users = $isGlobal
+            ? $this->entityManager->getRepository(User::class)->findAll()
+            : ($commission ? $commission->getUsers() : []);
 
         foreach ($users as $user) {
             $notification = new Notification();
@@ -105,17 +98,15 @@ class MessageController extends AbstractController
             $messages = $this->entityManager->getRepository(Message::class)
                 ->findBy(['isGlobal' => true], ['id' => 'DESC']);
 
-            $messageData = [];
-            foreach ($messages as $message) {
-                $messageData[] = [
-                    'id' => $message->getId(),
-                    'content' => $message->getContent(),
-                    'sender' => $message->getSender()->getUsername()
-                ];
-            }
+            $messageData = array_map(fn($msg) => [
+                'id' => $msg->getId(),
+                'content' => $msg->getContent(),
+                'sender' => $msg->getSender()->getUsername()
+            ], $messages);
 
             return new JsonResponse($messageData, JsonResponse::HTTP_OK);
         } catch (\Exception $e) {
+            $this->logger->error('Error retrieving global messages: ' . $e->getMessage());
             return new JsonResponse(['error' => 'An error occurred while retrieving global messages'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -127,7 +118,6 @@ class MessageController extends AbstractController
     {
         try {
             $commission = $this->entityManager->getRepository(Commission::class)->find($id);
-
             if (!$commission) {
                 return new JsonResponse(['error' => 'Commission not found'], JsonResponse::HTTP_NOT_FOUND);
             }
@@ -135,17 +125,15 @@ class MessageController extends AbstractController
             $messages = $this->entityManager->getRepository(Message::class)
                 ->findBy(['commission' => $commission], ['id' => 'DESC']);
 
-            $messageData = [];
-            foreach ($messages as $message) {
-                $messageData[] = [
-                    'id' => $message->getId(),
-                    'content' => $message->getContent(),
-                    'sender' => $message->getSender()->getUsername()
-                ];
-            }
+            $messageData = array_map(fn($msg) => [
+                'id' => $msg->getId(),
+                'content' => $msg->getContent(),
+                'sender' => $msg->getSender()->getUsername()
+            ], $messages);
 
             return new JsonResponse($messageData, JsonResponse::HTTP_OK);
         } catch (\Exception $e) {
+            $this->logger->error('Error retrieving commission messages: ' . $e->getMessage());
             return new JsonResponse(['error' => 'An error occurred while retrieving commission messages'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -157,24 +145,21 @@ class MessageController extends AbstractController
     {
         try {
             $message = $this->entityManager->getRepository(Message::class)->find($messageId);
-
             if (!$message) {
                 return new JsonResponse(['error' => 'Message not found'], JsonResponse::HTTP_NOT_FOUND);
             }
 
             $notifications = $this->entityManager->getRepository(Notification::class)->findBy(['message' => $message]);
 
-            $notificationData = [];
-            foreach ($notifications as $notification) {
-                $notificationData[] = [
-                    'id' => $notification->getId(),
-                    'content' => $notification->getMessageContent(),
-                    'createdAt' => $notification->getCreatedAt()->format('Y-m-d H:i:s')
-                ];
-            }
+            $notificationData = array_map(fn($notification) => [
+                'id' => $notification->getId(),
+                'content' => $notification->getMessageContent(),
+                'createdAt' => $notification->getCreatedAt()->format('Y-m-d H:i:s')
+            ], $notifications);
 
             return new JsonResponse($notificationData, JsonResponse::HTTP_OK);
         } catch (\Exception $e) {
+            $this->logger->error('Error retrieving notifications for message: ' . $e->getMessage());
             return new JsonResponse(['error' => 'An error occurred while retrieving notifications'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
