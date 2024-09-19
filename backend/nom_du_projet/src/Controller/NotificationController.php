@@ -28,25 +28,19 @@ class NotificationController extends AbstractController
     public function getNotifications(int $userId): JsonResponse
     {
         try {
-            $this->logger->info('Fetching notifications for user', ['user_id' => $userId]);
             $user = $this->entityManager->getRepository(User::class)->find($userId);
-
             if (!$user) {
-                $this->logger->error('User not found', ['user_id' => $userId]);
                 return new JsonResponse(['error' => 'User not found'], JsonResponse::HTTP_NOT_FOUND);
             }
 
             $notifications = $this->entityManager->getRepository(Notification::class)->findBy(['users' => $user]);
-            $notificationData = [];
-            foreach ($notifications as $notif) {
-                $notificationData[] = [
-                    'id' => $notif->getId(),
-                    'content' => $notif->getMessageContent(),
-                    'createdAt' => $notif->getCreatedAt()->format('Y-m-d H:i:s')
-                ];
-            }
 
-            $this->logger->info('Fetched notifications successfully', ['count' => count($notificationData)]);
+            $notificationData = array_map(fn($notif) => [
+                'id' => $notif->getId(),
+                'content' => $notif->getMessageContent(),
+                'createdAt' => $notif->getCreatedAt()->format('Y-m-d H:i:s')
+            ], $notifications);
+
             return new JsonResponse($notificationData, JsonResponse::HTTP_OK);
         } catch (\Exception $e) {
             $this->logger->error('Error while fetching notifications', ['exception' => $e]);
@@ -59,62 +53,61 @@ class NotificationController extends AbstractController
      */
     public function updateNotifications(Request $request): JsonResponse
     {
+        $this->entityManager->beginTransaction();
+
         try {
             $data = json_decode($request->getContent(), true);
-            $this->logger->info('Updating notifications', ['data' => $data]);
-
-            if (!isset($data['userId'])) {
-                $this->logger->error('User ID not provided');
-                return new JsonResponse(['error' => 'User ID not provided'], JsonResponse::HTTP_BAD_REQUEST);
+            if (!$data || !isset($data['userId'], $data['notifications'])) {
+                return new JsonResponse(['error' => 'Invalid data'], JsonResponse::HTTP_BAD_REQUEST);
             }
 
             $user = $this->entityManager->getRepository(User::class)->find($data['userId']);
             if (!$user) {
-                $this->logger->error('User not found', ['user_id' => $data['userId']]);
                 return new JsonResponse(['error' => 'User not found'], JsonResponse::HTTP_NOT_FOUND);
             }
 
-            // Clear existing notifications
-            $existingNotifications = $this->entityManager->getRepository(Notification::class)->findBy(['users' => $user]);
-            foreach ($existingNotifications as $notif) {
-                if ($notif->getUsers()->contains($user)) {
-                    $notif->removeUser($user);
-                    if ($notif->getUsers()->isEmpty()) {
-                        $this->logger->info('Removing notification', ['notification_id' => $notif->getId()]);
-                        $this->entityManager->remove($notif);
-                    }
-                }
-            }
-            $this->entityManager->flush();
-            $this->logger->info('Cleared existing notifications');
+            $this->clearUserNotifications($user);
+            $this->addNewNotifications($user, $data['notifications']);
 
-            // Add new notifications
-            foreach ($data['notifications'] as $notifData) {
-                $notif = new Notification();
-
-                if ($notifData['type'] === 'global') {
-                    $notif->setMessageContent('Global Notification');
-                } else {
-                    $commission = $this->entityManager->getRepository(Commission::class)->find($notifData['id']);
-                    if (!$commission) {
-                        $this->logger->error('Commission not found', ['commission_id' => $notifData['id']]);
-                        return new JsonResponse(['error' => 'Invalid commission'], JsonResponse::HTTP_BAD_REQUEST);
-                    }
-                    $notif->setMessageContent('Notification for ' . $commission->getName());
-                }
-
-                $notif->addUser($user);
-                $this->entityManager->persist($notif);
-                $this->logger->info('Added new notification', ['notification_id' => $notif->getId()]);
-            }
-
-            $this->entityManager->flush();
-            $this->logger->info('New notifications persisted successfully');
-
+            $this->entityManager->commit();
             return new JsonResponse(['message' => 'Notifications updated successfully'], JsonResponse::HTTP_OK);
         } catch (\Exception $e) {
-            $this->logger->error('Error while updating notifications', ['exception' => $e]);
+            $this->entityManager->rollback();
+            $this->logger->error('Error during the update process', ['exception' => $e]);
             return new JsonResponse(['error' => 'An error occurred while updating notifications'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private function clearUserNotifications(User $user): void
+    {
+        $existingNotifications = $this->entityManager->getRepository(Notification::class)->findBy(['users' => $user]);
+
+        foreach ($existingNotifications as $notif) {
+            $notif->removeUser($user);
+            if ($notif->getUsers()->isEmpty()) {
+                $this->entityManager->remove($notif);
+            }
+        }
+        $this->entityManager->flush();
+    }
+
+    private function addNewNotifications(User $user, array $notifications): void
+    {
+        foreach ($notifications as $notifData) {
+            if ($notifData['type'] === 'global') {
+                $notif = new Notification();
+                $notif->setMessageContent('Global Notification');
+            } else {
+                $commission = $this->entityManager->getRepository(Commission::class)->find($notifData['id']);
+                if (!$commission) {
+                    throw new \Exception('Invalid commission');
+                }
+                $notif = new Notification();
+                $notif->setMessageContent('Notification for ' . $commission->getName());
+            }
+            $notif->addUser($user);
+            $this->entityManager->persist($notif);
+        }
+        $this->entityManager->flush();
     }
 }

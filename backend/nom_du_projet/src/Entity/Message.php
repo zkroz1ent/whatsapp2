@@ -2,6 +2,10 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\User;
+use App\Entity\GroupConversation;
+use App\Entity\Commission;
+use App\Entity\Conversation;
 
 #[ORM\Entity]
 class Message
@@ -19,11 +23,11 @@ class Message
     private ?User $sender = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'messagesReceived')]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $receiver = null;
 
     #[ORM\ManyToOne(targetEntity: GroupConversation::class, inversedBy: 'messages')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?GroupConversation $group = null;
 
     #[ORM\ManyToOne(targetEntity: Commission::class, inversedBy: 'messages')]
@@ -31,10 +35,14 @@ class Message
     private ?Commission $commission = null;
 
     #[ORM\ManyToOne(targetEntity: Conversation::class, inversedBy: 'messages')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Conversation $conversation = null;
 
     #[ORM\Column(type: 'boolean')]
     private bool $isGlobal = false;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: false)]
+    private string $type = 'default_type'; // Fournir une valeur par défaut
 
     public function getId(): ?int
     {
@@ -57,7 +65,7 @@ class Message
         return $this->sender;
     }
 
-    public function setSender(?User $sender): self
+    public function setSender(User $sender): self
     {
         $this->sender = $sender;
         return $this;
@@ -71,17 +79,6 @@ class Message
     public function setReceiver(?User $receiver): self
     {
         $this->receiver = $receiver;
-        return $this;
-    }
-
-    public function isGlobal(): bool
-    {
-        return $this->isGlobal;
-    }
-
-    public function setIsGlobal(bool $isGlobal): self
-    {
-        $this->isGlobal = $isGlobal;
         return $this;
     }
 
@@ -115,6 +112,28 @@ class Message
     public function setConversation(?Conversation $conversation): self
     {
         $this->conversation = $conversation;
+        return $this;
+    }
+
+    public function isGlobal(): bool
+    {
+        return $this->isGlobal;
+    }
+
+    public function setIsGlobal(bool $isGlobal): self
+    {
+        $this->isGlobal = $isGlobal;
+        return $this;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): self
+    {
+        $this->type = $type;
         return $this;
     }
 }

@@ -72,22 +72,23 @@ class MessageController extends AbstractController
     }
 
     private function createNotifications(Message $message, bool $isGlobal, ?Commission $commission = null): void
-    {
-        $users = $isGlobal
-            ? $this->entityManager->getRepository(User::class)->findAll()
-            : ($commission ? $commission->getUsers() : []);
+   {
+       $users = $isGlobal
+           ? $this->entityManager->getRepository(User::class)->findAll()
+           : ($commission ? $commission->getUsers() : []);
 
-        foreach ($users as $user) {
-            $notification = new Notification();
-            $notification->setMessage($message);
-            $notification->setMessageContent($message->getContent());
-            $notification->addUser($user);
+       foreach ($users as $user) {
+           $notification = new Notification();
+           $notification->setMessage($message);
+           $notification->setMessageContent($message->getContent());
+           $notification->addUser($user);
+           $notification->setType('test'); // Veillez à initialiser le 'type'
 
-            $this->entityManager->persist($notification);
-        }
+           $this->entityManager->persist($notification);
+       }
 
-        $this->entityManager->flush();
-    }
+       $this->entityManager->flush();
+   }
 
     /**
      * @Route("/api/messages/global", name="get_global_messages", methods={"GET"})
